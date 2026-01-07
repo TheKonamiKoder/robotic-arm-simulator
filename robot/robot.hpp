@@ -1,6 +1,9 @@
 #include <string>
 #include <cmath>
+
 #include "coordinate.hpp"
+
+#pragma once
 
 class RobotComponent
 {
