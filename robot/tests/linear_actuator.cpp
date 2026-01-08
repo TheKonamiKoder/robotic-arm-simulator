@@ -3,8 +3,8 @@
 #include <cmath>
 #include <iostream>
 
-#include "robot/coordinate.hpp"
-#include "robot/robot.hpp"
+#include "../coordinate.hpp"
+#include "../robot.hpp"
 
 int main() 
 {
