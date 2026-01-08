@@ -88,6 +88,7 @@ class LinearActuator: public RobotComponent
 			double width
 		);
 		void translate(double displacement);
+		double getExtension();
 };
 
 LinearActuator::LinearActuator() {}
@@ -151,6 +152,11 @@ void LinearActuator::translate(double displacement)
 		
 		currentComponent = currentComponent->front;
 	}
+}
+
+double LinearActuator::getExtension()
+{
+	return this->extension;
 }
 
 class Motor: public RobotComponent
