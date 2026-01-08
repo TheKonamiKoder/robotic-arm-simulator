@@ -1,3 +1,5 @@
+#define _USE_MATH_DEFINES
+
 #include <string>
 #include <cmath>
 
@@ -18,15 +20,13 @@ class RobotComponent
 		RobotComponent* front;				
 	
 		RobotComponent();
-		RobotComponent(
-			long int id, std::string name, Coordinate position, double angle);
+		RobotComponent(long int id, std::string name, Coordinate position, double angle);
 		long int getId();
 };
 
 RobotComponent::RobotComponent() {}
 
-RobotComponent::RobotComponent(
-	long int id, std::string name, Coordinate position, double angle)
+RobotComponent::RobotComponent(long int id, std::string name, Coordinate position, double angle)
 {
 	this->id = id;
 	this->name = name;
@@ -49,28 +49,12 @@ class Segment: public RobotComponent
 		double width;
 	
 		Segment();
-		Segment
-		(	
-			long int id, 
-			std::string name, 
-			Coordinate position, 
-			double angle,
-			double height,
-			double width
-		);
+		Segment(long int id, std::string name, Coordinate position, double angle, double height,double width);
 };
 
 Segment::Segment() {}
 
-Segment::Segment
-(	
-	long int id, 
-	std::string name, 
-	Coordinate position, 
-	double angle,
-	double height,
-	double width
-)
+Segment::Segment(long int id, std::string name, Coordinate position, double angle, double height, double width)
 {
 	// Initialising base class attributes
 	this->id = id;
@@ -94,8 +78,7 @@ class LinearActuator: public RobotComponent
 		double width;
 		
 		LinearActuator();
-		LinearActuator
-		(
+		LinearActuator(
 			long int id, 
 			std::string name, 
 			Coordinate position, 
@@ -159,9 +142,6 @@ void LinearActuator::translate(double displacement)
 	double dx = (this->extension - pastExtension) * cos(this->angle);
 	double dy = (this->extension - pastExtension) * sin(this->angle);
 	
-	this->position.x += dx / 2;
-	this->position.y += dy / 2;
-	
 	RobotComponent* currentComponent = this->front;
 	
 	while (currentComponent != nullptr)
@@ -169,6 +149,97 @@ void LinearActuator::translate(double displacement)
 		currentComponent->position.x += dx;
 		currentComponent->position.y += dy;
 		
+		currentComponent = currentComponent->front;
+	}
+}
+
+class Motor: public RobotComponent
+{
+	public:
+		double rotatedAngle;
+		double maximumRotation;
+		double radius;
+	
+		Motor();
+		Motor
+		(
+			long int id, 
+			std::string name, 
+			Coordinate position, 
+			double angle, 
+			double maximumRotation, 
+			double radius			
+		);
+		void rotate(double angularDisplacement);
+};
+
+Motor::Motor() {}
+
+Motor::Motor
+(
+	long int id, 
+	std::string name, 
+	Coordinate position, 
+	double angle,
+	double maximumRotation, 
+	double radius
+)
+{
+	// Initialising base class attributes
+	this->id = id;
+	this->name = name;
+	this->position = position;
+	this->angle = angle;
+	this->front = nullptr;
+	
+	// Initialising child class attributes
+	this->rotatedAngle = 0;    // Setting starting rotated angle to 0 at the beginning
+	this->maximumRotation = maximumRotation;
+	this->radius = radius;
+}
+
+void Motor::rotate(double angularDisplacement)
+{
+	double pastAngle = this->rotatedAngle;
+	double newAngle = this->rotatedAngle + angularDisplacement;
+
+	// Ensure that the newAngle is between 0 and 2 pi radians
+	// This is to be able to check if the motor has rotated past its maximum rotation
+	// A while loop is necessary in case the magnitude of the angular displacement is greater than 2 pi
+	while (!((newAngle >= 0) && (newAngle < 2 * M_PI)))
+	{
+		if (newAngle < 0)
+		{
+			newAngle += 2 * M_PI;	// This will add 2 pi to angle until it comes into range
+		}
+		if (newAngle >= 2 * M_PI)
+		{
+			newAngle -= 2 * M_PI;	// This willl remove 2 pi from angle until it comes into range
+		}
+	}
+
+	// Ensures that the motor is not rotated beyond its maximum limit
+	// No need to check that the angle is below 0 as we have ensured that the newAngle is between 0 and 2 pi
+	if (newAngle > maximumRotation)
+	{
+		newAngle = maximumRotation;
+	}
+	this->rotatedAngle = newAngle;
+
+	RobotComponent* currentComponent = this->front;
+
+	while (currentComponent != nullptr)
+	{
+		double x_rel = currentComponent->position.x - this->position.x;
+		double y_rel = currentComponent->position.y - this->position.y;
+
+		// Apply the rotation matrix
+		double dx = x_rel * cos(this->rotatedAngle - pastAngle) - y_rel * sin(this->rotatedAngle - pastAngle);
+		double dy = x_rel * sin(this->rotatedAngle - pastAngle) + y_rel * cos(this->rotatedAngle - pastAngle);
+
+		currentComponent->position.x += dx;
+		currentComponent->position.y += dy;
+
 		currentComponent = currentComponent->front;
 	}
 }
