@@ -64,9 +64,68 @@ int main()
     // Aim to test the motor by itself
     // Check that the normalisation of the angle is working correctly
     // Check that the rotation does not exceed the maximum rotation range of the motor
-    // This corresponds to test
+    // This corresponds to tests 14 and 15 in the design document (in the Robot section)
     std::cout << "\nTesting motor by itself\n";
     {
+        Motor motor = Motor(0, "Motor", Coordinate(0, 0), 0, 2 * M_PI, 5);  // Creating motor with 360 degree rotation
 
+        // Test rotating motor when it is in range
+        motor.rotate(M_PI);
+        test("Angular Displacement Within Range", isCloseEnough(motor.getRotatedAngle(), M_PI));
+
+        // Test if it is possible to "add" the extension by rotating motor more than once
+        motor.rotate(M_PI / 2);
+        test("Anticlockwise Rotation", isCloseEnough(motor.getRotatedAngle(), 1.5 * M_PI));
+
+        // Test if it is possible to rotate motor clockwise
+        motor.rotate(-1.5 * M_PI);
+        test("Clockwise Rotation", isCloseEnough(motor.getRotatedAngle(), 0));
+
+        // Test normalisation of positive angles
+        motor.rotate(5 * M_PI_2);
+        test("Normalisation of Positive Angles", isCloseEnough(motor.getRotatedAngle(), M_PI_2));
+
+        // Test normalisation of negative angles
+        motor.rotate(-M_PI);
+        test("Normalisation of Negative Angles", isCloseEnough(motor.getRotatedAngle(), 3 * M_PI_2));
+
+        motor.rotate(M_PI_2);   // Reset motor to 0
+        motor.maximumRotation = M_PI;
+
+        // Test that motor's rotation does not exceed maximum rotation angle
+        motor.rotate(1.5 * M_PI);
+        test("Surpassing Maximum Rotation", isCloseEnough(motor.getRotatedAngle(), M_PI));
+
+        // Test that motor's rotation does not decrease past 0
+        motor.rotate(-1.5 * M_PI);
+        test("Rotatingi Past Rotation", isCloseEnough(motor.getRotatedAngle(), M_PI));
+    }
+
+    // Aim to check that the motor can accurately rotate connected segments
+    // This corresponds to test 16
+    std::cout << "\nTesting motor with one component attached\n";
+    {
+        Motor motor = Motor(0, "Motor", Coordinate(0, 0), 0, 2 * M_PI, 5);  // Creating motor with 360 degree rotation
+        Segment segment = Segment(1, "Segment", Coordinate(10, 0), 0, 10, 5);
+
+        motor.front = &segment;     // Manually attaching the segment to the motor
+        
+        // Test rotating motor by 90 degrees anticlockwise
+        motor.rotate(M_PI_2);
+        std::array<Coordinate, 4> corners = getCorners(segment);
+        test("Anticlockwise Rotation by 90 for Segment Position", isCloseEnough(segment.position, Coordinate(0, 10)));
+        test("Anticlockwise Rotation by 90 for Top Left Corner", isCloseEnough(corners[TOP_LEFT], Coordinate(-2.5, 15)));
+        test("Anticlockwise Rotation by 90 for Top Right Corner", isCloseEnough(corners[TOP_RIGHT], Coordinate(2.5, 15)));
+        test("Anticlockwise Rotation by 90 for Bottom Left Corner", isCloseEnough(corners[BOTTOM_LEFT], Coordinate(-2.5, 5)));
+        test("Anticlockwise Rotation by 90 for Bottom Right Corner", isCloseEnough(corners[BOTTOM_RIGHT], Coordinate(2.5, 5)));
+
+        // Test rotating motor by 90 degrees clockwise
+        motor.rotate(M_PI_2);
+        std::array<Coordinate, 4> corners = getCorners(segment);
+        test("Clockwise Rotation by 90 for Segment Position", isCloseEnough(segment.position, Coordinate(10, 0)));
+        test("Clockwise Rotation by 90 for Top Left Corner", isCloseEnough(corners[TOP_LEFT], Coordinate(15, 2.5)));
+        test("Clockwise Rotation by 90 for Top Right Corner", isCloseEnough(corners[TOP_RIGHT], Coordinate(15, -2.5)));
+        test("Clockwise Rotation by 90 for Bottom Left Corner", isCloseEnough(corners[BOTTOM_LEFT], Coordinate(5, 2.5)));
+        test("Clockwise Rotation by 90 for Bottom Right Corner", isCloseEnough(corners[BOTTOM_RIGHT], Coordinate(5, -2.5)));
     }
 }
