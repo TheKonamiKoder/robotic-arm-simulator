@@ -161,8 +161,9 @@ double LinearActuator::getExtension()
 
 class Motor: public RobotComponent
 {
-	public:
+	private:
 		double rotatedAngle;
+	public:
 		double maximumRotation;
 		double radius;
 	
@@ -177,6 +178,7 @@ class Motor: public RobotComponent
 			double radius			
 		);
 		void rotate(double angularDisplacement);
+		double getRotatedAngle();
 };
 
 Motor::Motor() {}
@@ -248,4 +250,9 @@ void Motor::rotate(double angularDisplacement)
 
 		currentComponent = currentComponent->front;
 	}
+}
+
+double Motor::getRotatedAngle()
+{
+	return this->rotatedAngle;
 }
