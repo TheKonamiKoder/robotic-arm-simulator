@@ -238,16 +238,7 @@ void Motor::rotate(double angularDisplacement)
 
 	while (currentComponent != nullptr)
 	{
-		double x_rel = currentComponent->position.x - this->position.x;
-		double y_rel = currentComponent->position.y - this->position.y;
-
-		// Apply the rotation matrix
-		double dx = x_rel * cos(this->rotatedAngle - pastAngle) - y_rel * sin(this->rotatedAngle - pastAngle);
-		double dy = x_rel * sin(this->rotatedAngle - pastAngle) + y_rel * cos(this->rotatedAngle - pastAngle);
-
-		currentComponent->position.x += dx;
-		currentComponent->position.y += dy;
-
+		currentComponent->position.rotateAbout(this->position, this->rotatedAngle - pastAngle);
 		currentComponent = currentComponent->front;
 	}
 }
