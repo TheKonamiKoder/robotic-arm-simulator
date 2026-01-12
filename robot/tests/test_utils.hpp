@@ -1,7 +1,7 @@
 #include <cmath>
 #include <iostream>
 
-#include "../robot/coordinate.hpp"
+#include "../coordinate.hpp"
 
 #define EPSILON 0.1 // This is a small error value that is allowed when checking floating point numbers
 
