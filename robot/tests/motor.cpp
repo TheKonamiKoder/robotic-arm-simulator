@@ -98,7 +98,7 @@ int main()
 
         // Test that motor's rotation does not decrease past 0
         motor.rotate(-1.5 * M_PI);
-        test("Rotating Past Rotation", isCloseEnough(motor.getRotatedAngle(), 0));
+        test("Rotating Past 0", isCloseEnough(motor.getRotatedAngle(), 0));
     }
 
     // Aim to check that the motor can accurately rotate connected segments
