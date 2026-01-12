@@ -1,5 +1,5 @@
-main.exe
-main.ilk
-main.obj
-main.pdb
+*.exe
+*.ilk
+*.obj
+*.pdb
 vc140.pdb
