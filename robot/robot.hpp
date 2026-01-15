@@ -211,27 +211,37 @@ void Motor::rotate(double angularDisplacement)
 	double pastAngle = this->rotatedAngle;
 	double newAngle = this->rotatedAngle + angularDisplacement;
 
-	// Ensure that the newAngle is between 0 and 2 pi radians
-	// This is to be able to check if the motor has rotated past its maximum rotation
-	// A while loop is necessary in case the magnitude of the angular displacement is greater than 2 pi
-	while (!((newAngle >= 0) && (newAngle < 2 * M_PI)))
+	// If the maximum rotation is not 2 pi (which means that the angle cannot rotate fully) we first have to check that 
+	// the maximum and minimum rotations are not surpassed
+	if ((2 * M_PI - this->maximumRotation) > 0.1)	// Allow a small error of 0.1, due to floating point inaccuracies 
 	{
-		if (newAngle < 0)
+		if (newAngle > this->maximumRotation)
 		{
-			newAngle += 2 * M_PI;	// This will add 2 pi to angle until it comes into range
+			newAngle = this->maximumRotation;
 		}
-		if (newAngle >= 2 * M_PI)
+		else if (newAngle < 0)
 		{
-			newAngle -= 2 * M_PI;	// This willl remove 2 pi from angle until it comes into range
+			newAngle = 0;
+		}		
+	}
+	else
+	{
+		// Ensure that the newAngle is between 0 and 2 pi radians
+		// This is to be able to check if the motor has rotated past its maximum rotation
+		// A while loop is necessary in case the magnitude of the angular displacement is greater than 2 pi
+		while (!((newAngle >= 0) && (newAngle < 2 * M_PI)))
+		{
+			if (newAngle < 0)
+			{
+				newAngle += 2 * M_PI;	// This will add 2 pi to angle until it comes into range
+			}
+			if (newAngle >= 2 * M_PI)
+			{
+				newAngle -= 2 * M_PI;	// This willl remove 2 pi from angle until it comes into range
+			}
 		}
 	}
-
-	// Ensures that the motor is not rotated beyond its maximum limit
-	// No need to check that the angle is below 0 as we have ensured that the newAngle is between 0 and 2 pi
-	if (newAngle > maximumRotation)
-	{
-		newAngle = maximumRotation;
-	}
+	
 	this->rotatedAngle = newAngle;
 
 	RobotComponent* currentComponent = this->front;
@@ -239,6 +249,7 @@ void Motor::rotate(double angularDisplacement)
 	while (currentComponent != nullptr)
 	{
 		currentComponent->position.rotateAbout(this->position, this->rotatedAngle - pastAngle);
+		currentComponent->angle += (this->rotatedAngle - pastAngle);
 		currentComponent = currentComponent->front;
 	}
 }

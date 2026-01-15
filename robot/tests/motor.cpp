@@ -163,9 +163,9 @@ int main()
     std::cout << "\nTesting motor with 3 components attached\n";
     {
         Motor motor = Motor(0, "Motor", Coordinate(0, 0), 0, 2 * M_PI, 5);  // Creating motor with 360 degree rotation
-        Segment first = Segment(1, "First", Coordinate(10, 0), M_PI_2, 10, 5);
-        Segment second = Segment(1, "Second", Coordinate(20, 0), M_PI_2, 10, 5);
-        Segment third = Segment(1, "Third", Coordinate(30, 0), M_PI_2, 10, 5);
+        Segment first = Segment(1, "First", Coordinate(10, 0), 0, 10, 5);
+        Segment second = Segment(1, "Second", Coordinate(20, 0), 0, 10, 5);
+        Segment third = Segment(1, "Third", Coordinate(30, 0), 0, 10, 5);
         
         // Manually building the robotic arm
         motor.front = &first;
@@ -176,7 +176,7 @@ int main()
         // Only need to check the position and 1 corner, as the last test should establish that all corners are in the 
         // correct position
         motor.rotate(M_PI_2);
-        test("Anticlockwise Rotation by 90 for First Segment Position", isCloseEnough(first.position, Coordinate(0, 10)));
+        test("Anticlockwise Rotation by 90 for First Segment Position", isCloseEnough(first.position, Coordinate(0, 10))); 
         test
         (
             "Anticlockwise Rotation by 90 for First Segment Top Left Corner", 

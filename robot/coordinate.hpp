@@ -30,9 +30,9 @@ void Coordinate::rotateAbout(Coordinate origin, double angle)
     double y_rel = this->y - origin.y;
 
     // Apply the rotation matrix
-    double dx = x_rel * cos(angle) - y_rel * sin(angle);
-    double dy = x_rel * sin(angle) + y_rel * cos(angle);
+    double new_x_rel = x_rel * cos(angle) - y_rel * sin(angle);
+    double new_y_rel = x_rel * sin(angle) + y_rel * cos(angle);
 
-    this->x += dx;
-    this->y += dy;
+    this->x = origin.x + new_x_rel;
+    this->y = origin.y + new_y_rel;
 }
