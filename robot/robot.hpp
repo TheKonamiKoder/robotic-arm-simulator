@@ -15,23 +15,25 @@ class RobotComponent
 		std::string name;
 		Coordinate position;
 		double angle;
+		double mass;
 		
 		// Front pointer to create a linked list
 		RobotComponent* front;				
 	
 		RobotComponent();
-		RobotComponent(long int id, std::string name, Coordinate position, double angle);
+		RobotComponent(long int id, std::string name, Coordinate position, double angle, double mass);
 		long int getId();
 };
 
 RobotComponent::RobotComponent() {}
 
-RobotComponent::RobotComponent(long int id, std::string name, Coordinate position, double angle)
+RobotComponent::RobotComponent(long int id, std::string name, Coordinate position, double angle, double mass)
 {
 	this->id = id;
 	this->name = name;
 	this->position = position;
 	this->angle = angle;
+	this->mass = mass;
 
 	// Initialised to null pointers as they don't point to anything at the start
 	this->front = nullptr;
@@ -49,18 +51,19 @@ class Segment: public RobotComponent
 		double width;
 	
 		Segment();
-		Segment(long int id, std::string name, Coordinate position, double angle, double height,double width);
+		Segment(long int id, std::string name, Coordinate position, double angle, double mass, double height, double width);
 };
 
 Segment::Segment() {}
 
-Segment::Segment(long int id, std::string name, Coordinate position, double angle, double height, double width)
+Segment::Segment(long int id, std::string name, Coordinate position, double angle, double mass, double height, double width)
 {
 	// Initialising base class attributes
 	this->id = id;
 	this->name = name;
 	this->position = position;
 	this->angle = angle;
+	this->mass = mass;
 	this->front = nullptr;
 	
 	// Initialising child class attributes
@@ -82,7 +85,8 @@ class LinearActuator: public RobotComponent
 			long int id, 
 			std::string name, 
 			Coordinate position, 
-			double angle, 
+			double angle,
+			double mass, 
 			double maximumExtension, 
 			double height, 
 			double width
@@ -99,6 +103,7 @@ LinearActuator::LinearActuator
 	std::string name, 
 	Coordinate position, 
 	double angle,
+	double mass,
 	double maximumExtension, 
 	double height, 
 	double width
@@ -109,6 +114,7 @@ LinearActuator::LinearActuator
 	this->name = name;
 	this->position = position;
 	this->angle = angle;
+	this->mass = mass;
 	this->front = nullptr;
 	
 	// Initialising child class attributes
@@ -173,7 +179,8 @@ class Motor: public RobotComponent
 			long int id, 
 			std::string name, 
 			Coordinate position, 
-			double angle, 
+			double angle,
+			double mass, 
 			double maximumRotation, 
 			double radius			
 		);
@@ -189,6 +196,7 @@ Motor::Motor
 	std::string name, 
 	Coordinate position, 
 	double angle,
+	double mass,
 	double maximumRotation, 
 	double radius
 )
@@ -198,6 +206,7 @@ Motor::Motor
 	this->name = name;
 	this->position = position;
 	this->angle = angle;
+	this->mass = mass;
 	this->front = nullptr;
 	
 	// Initialising child class attributes
