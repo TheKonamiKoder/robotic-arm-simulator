@@ -5,7 +5,8 @@
 
 #include "test_utils.hpp"
 #include "../coordinate.hpp"
-#include "../robot.hpp"
+#include "../linear_actuator.hpp"
+#include "../segment.hpp"
 
 int main() 
 {
@@ -16,7 +17,7 @@ int main()
     // This links to tests 9 and 10 within the design (for Robot section)
     std::cout << "\nTesting linear actuator by itself\n";
     {
-        LinearActuator linearActuator = LinearActuator(0, "Linear Actuator", Coordinate(0, 0), M_PI_2, 5, 10, 10, 5);
+        LinearActuator linearActuator(0, "Linear Actuator", Coordinate(0, 0), M_PI_2, 5, 10, 10, 5);
         
         // Test valid input of translating by 5, which is within the acceptable range
         linearActuator.translate(5);
@@ -43,8 +44,8 @@ int main()
     // This corresponds to test 11
     std::cout << "\nTesting linear actuator with 1 component attached\n";
     {
-        LinearActuator linearActuator = LinearActuator(0, "Linear Actuator", Coordinate(0, 0), M_PI_2, 5, 10, 10, 5);
-        Segment segment = Segment(1, "Segment", Coordinate(0, 15), M_PI_2, 5, 10, 5);
+        LinearActuator linearActuator(0, "Linear Actuator", Coordinate(0, 0), M_PI_2, 5, 10, 10, 5);
+        Segment segment(1, "Segment", Coordinate(0, 15), M_PI_2, 5, 10, 5);
 
         linearActuator.front = &segment;    // Manually "attaching" the segment to the front of the linear actuator
 
@@ -61,10 +62,10 @@ int main()
     // This corresponds to test 12
     std::cout << "\nTesting linear actuator with 3 components attached\n";
     {
-        LinearActuator linearActuator = LinearActuator(0, "Linear Actuator", Coordinate(0, 0), M_PI_2, 5, 10, 10, 5);
-        Segment first = Segment(1, "First", Coordinate(0, 15), M_PI_2, 5, 10, 5);
-        Segment second = Segment(1, "Second", Coordinate(0, 25), M_PI_2, 5, 10, 5);
-        Segment third = Segment(1, "Third", Coordinate(0, 35), M_PI_2, 5, 10, 5);
+        LinearActuator linearActuator(0, "Linear Actuator", Coordinate(0, 0), M_PI_2, 5, 10, 10, 5);
+        Segment first(1, "First", Coordinate(0, 15), M_PI_2, 5, 10, 5);
+        Segment second(1, "Second", Coordinate(0, 25), M_PI_2, 5, 10, 5);
+        Segment third(1, "Third", Coordinate(0, 35), M_PI_2, 5, 10, 5);
         
         // Manually building the robotic arm
         linearActuator.front = &first;
@@ -88,11 +89,10 @@ int main()
     // This corresponds to test 13
     std::cout << "\nTesting linear actuator at an angle\n";
     {
-        LinearActuator linearActuator = LinearActuator(0, "Linear Actuator", Coordinate(2.5, 2.5 * sqrt(3)), M_PI / 3, 
-                                                        5, 10, 10, 5);
-        Segment first = Segment(1, "First", Coordinate(7.5, 7.5 * sqrt(3)), M_PI_2, 5, 10, 5);
-        Segment second = Segment(1, "Second", Coordinate(12.5, 12.5 * sqrt(3)), M_PI_2, 5, 10, 5);
-        Segment third = Segment(1, "Third", Coordinate(17.5, 17.5 * sqrt(3)), M_PI_2, 5, 10, 5);
+        LinearActuator linearActuator(0, "Linear Actuator", Coordinate(2.5, 2.5 * sqrt(3)), M_PI / 3, 5, 10, 10, 5);
+        Segment first(1, "First", Coordinate(7.5, 7.5 * sqrt(3)), M_PI_2, 5, 10, 5);
+        Segment second(1, "Second", Coordinate(12.5, 12.5 * sqrt(3)), M_PI_2, 5, 10, 5);
+        Segment third(1, "Third", Coordinate(17.5, 17.5 * sqrt(3)), M_PI_2, 5, 10, 5);
 
         // Manually building the robotic arm
         linearActuator.front = &first;

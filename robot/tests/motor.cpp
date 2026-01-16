@@ -6,7 +6,8 @@
 
 #include "test_utils.hpp"
 #include "../coordinate.hpp"
-#include "../robot.hpp"
+#include "../motor.hpp"
+#include "../segment.hpp"
 
 // Defining the following macros so that positions of corners in array is clear
 #define TOP_LEFT 0
@@ -67,7 +68,7 @@ int main()
     // This corresponds to tests 14 and 15 in the design document (in the Robot section)
     std::cout << "\nTesting motor by itself\n";
     {
-        Motor motor = Motor(0, "Motor", Coordinate(0, 0), 0, 5, 2 * M_PI, 5);  // Creating motor with 360 degree rotation
+        Motor motor(0, "Motor", Coordinate(0, 0), 0, 5, 2 * M_PI, 5);  // Creating motor with 360 degree rotation
 
         // Test rotating motor when it is in range
         motor.rotate(M_PI);
@@ -105,8 +106,8 @@ int main()
     // This corresponds to test 16
     std::cout << "\nTesting motor with one component attached\n";
     {
-        Motor motor = Motor(0, "Motor", Coordinate(0, 0), 0, 5, 2 * M_PI, 5);  // Creating motor with 360 degree rotation
-        Segment segment = Segment(1, "Segment", Coordinate(10, 0), 0, 5, 10, 5);
+        Motor motor(0, "Motor", Coordinate(0, 0), 0, 5, 2 * M_PI, 5);  // Creating motor with 360 degree rotation
+        Segment segment(1, "Segment", Coordinate(10, 0), 0, 5, 10, 5);
 
         motor.front = &segment;     // Manually attaching the segment to the motor
         
@@ -162,10 +163,10 @@ int main()
     // This corresponds to test 17
     std::cout << "\nTesting motor with 3 components attached\n";
     {
-        Motor motor = Motor(0, "Motor", Coordinate(0, 0), 0, 5, 2 * M_PI, 5);  // Creating motor with 360 degree rotation
-        Segment first = Segment(1, "First", Coordinate(10, 0), 0, 5, 10, 5);
-        Segment second = Segment(1, "Second", Coordinate(20, 0), 0, 5, 10, 5);
-        Segment third = Segment(1, "Third", Coordinate(30, 0), 0, 5, 10, 5);
+        Motor motor(0, "Motor", Coordinate(0, 0), 0, 5, 2 * M_PI, 5);  // Creating motor with 360 degree rotation
+        Segment first(1, "First", Coordinate(10, 0), 0, 5, 10, 5);
+        Segment second(1, "Second", Coordinate(20, 0), 0, 5, 10, 5);
+        Segment third(1, "Third", Coordinate(30, 0), 0, 5, 10, 5);
         
         // Manually building the robotic arm
         motor.front = &first;
