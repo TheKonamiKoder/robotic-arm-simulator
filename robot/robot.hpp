@@ -57,8 +57,9 @@ public:
 	Robot(id_t id, std::string name);
 	~Robot();
 	id_t generateId();
-	void attach(RobotComponent* robotComponent);
-	void attach(RobotComponent* to, RobotComponent* next);
+	void attachToEnd(RobotComponent* robotComponent);
+	void attachTo(RobotComponent* to, RobotComponent* next);
+	void attachBaseTo(RobotComponent* robotComponent);
 	void remove(RobotComponent* robotComponent);
 	Coordinate calculateCentreOfMass();
 	void store(std::string filename);
@@ -106,8 +107,7 @@ id_t Robot::generateId()
 	return distribution(generator);
 }
 
-// When only one parameter is passed, the default is to add the robot component to the end of the robot
-void Robot::attach(RobotComponent* robotComponent)
+void Robot::attachToEnd(RobotComponent* robotComponent)
 {
 	this->robotComponentsMap[robotComponent->getId()] = robotComponent;
 	this->mass += robotComponent->mass;		// Increase mass of robot by mass of robot component
@@ -128,33 +128,32 @@ void Robot::attach(RobotComponent* robotComponent)
 	this->end = robotComponent;
 }
 
-// When two parameters are passed, the second component is attached to the first component
-// If the first parameter passed is nullptr, the robot component is added to the beginning of the robot
-void Robot::attach(RobotComponent* a, RobotComponent* b)
+// Attaches the second component to the first component
+void Robot::attachTo(RobotComponent* a, RobotComponent* b)
 {
 	this->robotComponentsMap[b->getId()] = b;
 	this->mass += b->mass;
 
-	// Check that a is not nullptr
-	// If it isn't then that means that it is an element in the robot
-	// If it is nullptr, then b becomes the new base
-	if (a != nullptr)
-	{	
-		// Inserts b in front of a
-		b->front = a->front;	// The component in front of a is now in front of b
-		a->front = b;			// The component in front of a is now b
-
-		// This is important to check so that the end pointer is updated in the case that a is the last component
-		if (a == this->end)
-		{
-			this->end = b;
-		}
+	// Check if a is end as slightly different logic will need to be implemented
+	if (a == this->end)
+	{
+		this->attachToEnd(b);
 	}
 	else
 	{
-		b->front = this->base;	// The component in front of b is now the base	
-		this->base = b;			// The base is now b
+		// Inserts b in front of a
+		b->front = a->front;	// The component in front of a is now in front of b
+		a->front = b;			// The component in front of a is now b
 	}
+}
+
+void Robot::attachBaseTo(RobotComponent* robotComponent)
+{
+	this->robotComponentsMap[robotComponent->getId()] = robotComponent;
+	this->mass += robotComponent->mass;
+
+	robotComponent->front = this->base;
+	this->base = robotComponent;
 }
 
 // Removes the robot component from the robot
@@ -356,7 +355,7 @@ Robot Robot::loadFromFile(id_t id, std::string filename)
 
 		if (component_type == SEGMENT_IDENTIFIER)
 		{
-			robot.attach
+			robot.attachToEnd
 			(
 				new Segment
 				(
@@ -372,7 +371,7 @@ Robot Robot::loadFromFile(id_t id, std::string filename)
 		}
 		else if (component_type == LINEAR_ACTUATOR_IDENTIFIER)
 		{
-			robot.attach
+			robot.attachToEnd
 			(
 				new LinearActuator
 				(
@@ -397,7 +396,7 @@ Robot Robot::loadFromFile(id_t id, std::string filename)
 		}
 		else if (component_type == MOTOR_IDENTIFIER)
 		{
-			robot.attach
+			robot.attachToEnd
 			(
 				new Motor
 				(
