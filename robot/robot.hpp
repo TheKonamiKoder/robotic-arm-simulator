@@ -101,7 +101,7 @@ Robot::~Robot()
 id_t Robot::generateId()
 {
 	static std::random_device random_device;	// Static variables used so that it does not need to be re-declared
-	static std::mt19937 generator(random_device);
+	static std::mt19937 generator(random_device());
 	static std::uniform_int_distribution<id_t> distribution;
 
 	return distribution(generator);
@@ -415,6 +415,7 @@ Robot Robot::loadFromFile(id_t id, std::string filename)
 		}
 	}
 	
+	return robot;
 }
 
 id_t Robot::getId()
