@@ -1,269 +1,451 @@
+#pragma once
+
 #define _USE_MATH_DEFINES
 
 #include <string>
-#include <cmath>
-
+#include <unordered_map>
+#include <random>
+#include <iostream>
+#include <fstream>
+#include <array>
 #include "coordinate.hpp"
+#include "robot_component.hpp"
+#include "segment.hpp"
+#include "linear_actuator.hpp"
+#include "motor.hpp"
 
-#pragma once
+// Defining following macros to be used when dealing files (reading and writing to file to store the robot)
+// Using pipes as the delimiter as it is unlikely that the name of the robot will require a pipe
+#define DELIMITER '|'	
+#define SEGMENT_IDENTIFIER "SEGMENT"
+#define LINEAR_ACTUATOR_IDENTIFIER "LINEAR ACTUATOR"
+#define MOTOR_IDENTIFIER "MOTOR"
 
-class RobotComponent
+// The following macros are used to define the positions of each of the parameters in the parameter arrays
+// By using macros, this means that even if the positions change, I won't have to change the individual numbers
+#define ID 0
+#define NAME 1
+#define POSITION_X 2
+#define POSITION_Y 3
+#define ANGLE 4
+#define MASS 5
+
+#define SEGMENT_HEIGHT 0
+#define SEGMENT_WIDTH 1
+
+#define LINEAR_ACTUATOR_EXTENSION 0
+#define LINEAR_ACTUATOR_MAXIMUM_EXTENSION 1
+#define LINEAR_ACTUATOR_HEIGHT 2
+#define LINEAR_ACTUATOR_WIDTH 3
+
+#define MOTOR_ROTATED_ANGLE 0
+#define MOTOR_MAXIMUM_ROTATION 1
+#define MOTOR_RADIUS 2
+
+class Robot
 {
-	protected:
-		long int id;
-	public:
-		std::string name;
-		Coordinate position;
-		double angle;
-		double mass;
-		
-		// Front pointer to create a linked list
-		RobotComponent* front;				
-	
-		RobotComponent();
-		RobotComponent(long int id, std::string name, Coordinate position, double angle, double mass);
-		long int getId();
+private:
+	id_t id;
+	double mass;
+	std::unordered_map<id_t, RobotComponent*> robotComponentsMap;
+	RobotComponent* base;
+	RobotComponent* end;
+public:
+	std::string name;
+
+	Robot();
+	Robot(id_t id, std::string name);
+	~Robot();
+	id_t generateId();
+	void attach(RobotComponent* robotComponent);
+	void attach(RobotComponent* to, RobotComponent* next);
+	void remove(RobotComponent* robotComponent);
+	Coordinate calculateCentreOfMass();
+	void store(std::string filename);
+	static Robot loadFromFile(id_t id, std::string filename);
+	id_t getId();
+	double getMass();
+	RobotComponent* getComponentFromId(id_t id);
+	RobotComponent* getBase();
+	RobotComponent* getEnd();
 };
 
-RobotComponent::RobotComponent() {}
+Robot::Robot() {}
 
-RobotComponent::RobotComponent(long int id, std::string name, Coordinate position, double angle, double mass)
+Robot::Robot(id_t id, std::string name)
 {
 	this->id = id;
 	this->name = name;
-	this->position = position;
-	this->angle = angle;
-	this->mass = mass;
 
-	// Initialised to null pointers as they don't point to anything at the start
-	this->front = nullptr;
+	this->base = nullptr;
+	this->end = nullptr;
 }
 
-long int RobotComponent::getId()
+// Since pointers have been used, the destructor needs to be manually defined and all RobotComponents need to be
+// removed from the heap manually
+// If this is not done, this can cause memory leak issues
+Robot::~Robot() 
+{
+	// Following code loops through the map and deletes all of the robot components
+	for (auto pair : this->robotComponentsMap)
+	{
+		delete pair.second;
+	}
+}
+
+// This method will be used to generate an id for the robot components
+// It will generate a unique id that is not already part of the robot
+// This is important as each component will need to have its own id and this id needs to be unique for each component
+// in the robot
+id_t Robot::generateId()
+{
+	static std::random_device random_device;	// Static variables used so that it does not need to be re-declared
+	static std::mt19937 generator(random_device);
+	static std::uniform_int_distribution<id_t> distribution;
+
+	return distribution(generator);
+}
+
+// When only one parameter is passed, the default is to add the robot component to the end of the robot
+void Robot::attach(RobotComponent* robotComponent)
+{
+	this->robotComponentsMap[robotComponent->getId()] = robotComponent;
+	this->mass += robotComponent->mass;		// Increase mass of robot by mass of robot component
+	
+	// Check if the robot has a base
+	if (this->base == nullptr)
+	{
+		// If the robot doesn't have a base, then the component is the first component and as such will be the base
+		this->base = robotComponent;
+	} 
+	else
+	{
+		// If the robot doesn't have a base, then the component is not the first component, so attach it to the end
+		this->end->front = robotComponent;
+	}
+
+	// Regardless of what happens, the end component will be the new robot component
+	this->end = robotComponent;
+}
+
+// When two parameters are passed, the second component is attached to the first component
+// If the first parameter passed is nullptr, the robot component is added to the beginning of the robot
+void Robot::attach(RobotComponent* a, RobotComponent* b)
+{
+	this->robotComponentsMap[b->getId()] = b;
+	this->mass += b->mass;
+
+	// Check that a is not nullptr
+	// If it isn't then that means that it is an element in the robot
+	// If it is nullptr, then b becomes the new base
+	if (a != nullptr)
+	{	
+		// Inserts b in front of a
+		b->front = a->front;	// The component in front of a is now in front of b
+		a->front = b;			// The component in front of a is now b
+
+		// This is important to check so that the end pointer is updated in the case that a is the last component
+		if (a == this->end)
+		{
+			this->end = b;
+		}
+	}
+	else
+	{
+		b->front = this->base;	// The component in front of b is now the base	
+		this->base = b;			// The base is now b
+	}
+}
+
+// Removes the robot component from the robot
+void Robot::remove(RobotComponent* robotComponent)
+{
+	// First we need to check that the robot component is actually in the list
+	if (this->robotComponentsMap.find(robotComponent->getId()) != this->robotComponentsMap.end())
+	{
+		// Check if it is the first component
+		if (this->base == robotComponent)
+		{
+			this->base = robotComponent->front;		// The new base is now the component in front of the old base
+		}
+		else
+		{
+			// If it isn't the base, we have to find which component points to it
+			RobotComponent* currentComponent = this->base;
+
+			while (currentComponent->front != robotComponent)
+			{
+				currentComponent = currentComponent->front;
+			}
+
+			// Check if component removed is at end to update the end pointer so it points to the new end of the robot
+			if (this->end == robotComponent)
+			{
+				this->end = currentComponent;
+			}
+			
+			currentComponent->front = robotComponent->front;
+		}
+
+		this->robotComponentsMap.erase(robotComponent->getId());	// Remove the robot component from the map
+		delete robotComponent;										// Delete the robot component from the heap
+	}
+}
+
+// This method returns the position of the centre of mass of the robot
+// If the robot is "empty", then the function will return (0, 0)
+Coordinate Robot::calculateCentreOfMass()
+{
+	Coordinate centreOfMass(0, 0);
+
+	RobotComponent* currentComponent = this->base;
+
+	while (currentComponent != nullptr)
+	{
+		centreOfMass.x += currentComponent->position.x * currentComponent->mass;
+		centreOfMass.y += currentComponent->position.y * currentComponent->mass;
+	}
+	
+	if (this->mass != 0)
+	{
+		centreOfMass.x /= this->mass;
+		centreOfMass.y /= this->mass;
+	}
+
+	return centreOfMass;
+}
+
+// This method will store the data in the file
+//
+// The format of the file is like so:
+// First line: Robot Name (the id is not stored as the id for the robot is only important when there are multiple robots
+// which will happen in Worlds)
+// Each of the next lines will store the components of the robot in order of how they are connected to each other
+// Format of each line differs depending on the component
+// For a Segment, the line format is: ID | Name | Position x | Position y | Angle | Mass | SEGMENT | Height | Width
+// For a LinearActuator, hte line format is: ID | Name | Position x | Position y | Angle | Mass | LINEAR ACTUATOR |
+// Extension | Maximum Extension | Height | Width
+// For a Motor, the line format is: ID | Name | Position x | Position y | Angle | Mass | MOTOR | Rotated Angle | Maximum
+// Rotation | Radius
+void Robot::store(std::string filename)
+{
+	std::ofstream file(filename);
+
+	file << this->name << '\n';
+
+	RobotComponent* currentComponent = this->base;
+
+	while (currentComponent != nullptr)
+	{
+		// These attributes are common for all components, so this will run first no matter what
+		file << currentComponent->getId()				<< DELIMITER
+			 << currentComponent->name					<< DELIMITER
+			 << currentComponent->position.x			<< DELIMITER
+			 << currentComponent->position.y			<< DELIMITER
+			 << currentComponent->angle					<< DELIMITER
+			 << currentComponent->mass					<< DELIMITER;
+
+		// Need to check what the type of components is for the next part, since they have different attributes
+		// I have decided to use dynamic_cast instead of polymorphism for this because I did not want the various
+		// components to be responsible for storing themselves in the file, and this behaviour makes more sense within
+		// the Robot class as the Robot class is responsible for saving and loading the components into/out of files
+
+		if (auto segment = dynamic_cast<Segment*>(currentComponent))
+		{
+			file << SEGMENT_IDENTIFIER 					<< DELIMITER
+				 << segment->height						<< DELIMITER
+				 << segment->width						<< DELIMITER;
+		}
+		else if (auto linear_actuator = dynamic_cast<LinearActuator*>(currentComponent))
+		{
+			file << LINEAR_ACTUATOR_IDENTIFIER			<< DELIMITER
+				 << linear_actuator->getExtension()		<< DELIMITER
+				 << linear_actuator->maximumExtension	<< DELIMITER
+				 << linear_actuator->height				<< DELIMITER
+				 << linear_actuator->width				<< DELIMITER;
+		}
+		else if (auto motor = dynamic_cast<Motor*>(currentComponent))
+		{
+			file << MOTOR_IDENTIFIER					<< DELIMITER
+				 << motor->getRotatedAngle()			<< DELIMITER
+				 << motor->maximumRotation				<< DELIMITER
+				 << motor->radius						<< DELIMITER;
+		}
+		
+		file << '\n';	// Add a new line at the end of each component
+
+		currentComponent = currentComponent->front;
+	}
+
+	file.close();
+}
+
+// This static method will return a robot after reading it from a file
+// It will iterate through all the robot components in the file (line by line) and then attach these robot components
+// to the robot
+Robot Robot::loadFromFile(id_t id, std::string filename)
+{
+	std::ifstream file(filename);
+	
+	std::string robot_name;
+	std::getline(file, robot_name);
+	robot_name.erase(robot_name.find_last_not_of(" \t\n\r\f\v"));	// Trim the end of the name 
+	Robot robot(id, robot_name);									// Create robot class
+
+	std::string line;
+	while (std::getline(file, line))
+	{
+		std::string data = "";
+
+		// The parameter counter stores the current parameter as they get appended to the list
+		int parameter_counter = 0;
+		std::string component_type = "";
+		std::array<std::string, 7> common_parameters;
+		std::array<std::string, 2> segment_parameters;
+		std::array<std::string, 4> linear_actuator_parameters;
+		std::array<std::string, 3> motor_parameters;
+
+		char c;
+		for (int i = 0; i < line.length(); i++)
+		{
+			c = line[i];
+
+			if (c != DELIMITER)
+			{
+				data += c;
+			}
+			else
+			{
+				// Trim string
+				data.erase(data.find_last_not_of(" ") + 1);
+				data.erase(0, data.find_first_not_of(" "));
+
+				// Check if the data is the segment type, in which case the next parameters will not be common
+				if ((data == SEGMENT_IDENTIFIER) || (data == LINEAR_ACTUATOR_IDENTIFIER) || (data == MOTOR_IDENTIFIER))
+				{
+					component_type = data;
+					parameter_counter = 0;
+				}
+				else
+				{
+					// Add the parameter to the correct parameter list
+
+					if (component_type == SEGMENT_IDENTIFIER)
+					{
+						segment_parameters[parameter_counter] = data;
+					}
+					else if (component_type == LINEAR_ACTUATOR_IDENTIFIER)
+					{
+						linear_actuator_parameters[parameter_counter] = data;
+					}
+					else if (component_type == MOTOR_IDENTIFIER)
+					{
+						motor_parameters[parameter_counter] = data;
+					}
+					else
+					{
+						common_parameters[parameter_counter] = data;
+					}
+					
+					parameter_counter += 1;
+				}
+				
+				data = "";
+			}
+		}
+
+		if (component_type == SEGMENT_IDENTIFIER)
+		{
+			robot.attach
+			(
+				new Segment
+				(
+					std::stoi(common_parameters[ID]),
+					common_parameters[NAME],
+					Coordinate(std::stod(common_parameters[POSITION_X]), std::stod(common_parameters[POSITION_Y])),
+					std::stod(common_parameters[ANGLE]),
+					std::stod(common_parameters[MASS]),
+					std::stod(segment_parameters[SEGMENT_HEIGHT]),
+					std::stod(segment_parameters[SEGMENT_WIDTH])
+				)
+			);
+		}
+		else if (component_type == LINEAR_ACTUATOR_IDENTIFIER)
+		{
+			robot.attach
+			(
+				new LinearActuator
+				(
+					std::stoi(common_parameters[ID]),
+					common_parameters[NAME],
+					Coordinate(std::stod(common_parameters[POSITION_X]), std::stod(common_parameters[POSITION_Y])),
+					std::stod(common_parameters[ANGLE]),
+					std::stod(common_parameters[MASS]),
+					std::stod(linear_actuator_parameters[LINEAR_ACTUATOR_MAXIMUM_EXTENSION]),
+					std::stod(linear_actuator_parameters[LINEAR_ACTUATOR_HEIGHT]),
+					std::stod(linear_actuator_parameters[LINEAR_ACTUATOR_WIDTH])
+				)
+			);
+
+			// Use the translate method to extend the linear actuator. This is necessary because the extension can
+			// only be modified by the public method translate since it is a private attribute and can't be modified
+			// directly
+			dynamic_cast<LinearActuator*>(robot.getEnd())->translate
+			(
+				std::stod(linear_actuator_parameters[LINEAR_ACTUATOR_EXTENSION])
+			);
+		}
+		else if (component_type == MOTOR_IDENTIFIER)
+		{
+			robot.attach
+			(
+				new Motor
+				(
+					std::stoi(common_parameters[ID]),
+					common_parameters[NAME],
+					Coordinate(std::stod(common_parameters[POSITION_X]), std::stod(common_parameters[POSITION_Y])),
+					std::stod(common_parameters[ANGLE]),
+					std::stod(common_parameters[MASS]),
+					std::stod(motor_parameters[MOTOR_MAXIMUM_ROTATION]),
+					std::stod(motor_parameters[MOTOR_RADIUS])
+				)
+			);
+
+			// Use the rotate method in order to chang ethe rotated angle private attribute by the motor
+			dynamic_cast<Motor*>(robot.getEnd())->rotate(std::stod(motor_parameters[MOTOR_ROTATED_ANGLE]));
+		}
+	}
+	
+}
+
+id_t Robot::getId()
 {
 	return this->id;
 }
 
-class Segment: public RobotComponent
+double Robot::getMass()
 {
-	public:
-		double height;
-		double width;
-	
-		Segment();
-		Segment(long int id, std::string name, Coordinate position, double angle, double mass, double height, double width);
-};
-
-Segment::Segment() {}
-
-Segment::Segment(long int id, std::string name, Coordinate position, double angle, double mass, double height, double width)
-{
-	// Initialising base class attributes
-	this->id = id;
-	this->name = name;
-	this->position = position;
-	this->angle = angle;
-	this->mass = mass;
-	this->front = nullptr;
-	
-	// Initialising child class attributes
-	this->height = height;
-	this->width = width;
+	return this->mass;
 }
 
-class LinearActuator: public RobotComponent
+RobotComponent* Robot::getComponentFromId(id_t id)
 {
-	private:
-		double extension;
-	public:
-		double maximumExtension;
-		double height;
-		double width;
-		
-		LinearActuator();
-		LinearActuator(
-			long int id, 
-			std::string name, 
-			Coordinate position, 
-			double angle,
-			double mass, 
-			double maximumExtension, 
-			double height, 
-			double width
-		);
-		void translate(double displacement);
-		double getExtension();
-};
-
-LinearActuator::LinearActuator() {}
-
-LinearActuator::LinearActuator
-(
-	long int id, 
-	std::string name, 
-	Coordinate position, 
-	double angle,
-	double mass,
-	double maximumExtension, 
-	double height, 
-	double width
-)
-{
-	// Initialising base class attributes
-	this->id = id;
-	this->name = name;
-	this->position = position;
-	this->angle = angle;
-	this->mass = mass;
-	this->front = nullptr;
-	
-	// Initialising child class attributes
-	this->extension = 0;    // Setting extension to 0 at the beginning
-	this->maximumExtension = maximumExtension;
-	this->height = height;
-	this->width = width;
-}
-
-void LinearActuator::translate(double displacement)
-{	
-	double pastExtension = this->extension;
-	double newExtension = this->extension + displacement;
-
-	// Ensures that the extension will not become negative
-	if (newExtension < 0)
+	if (this->robotComponentsMap.find(id) != this->robotComponentsMap.end())
 	{
-		this->extension = 0;
-	}
-	else if (newExtension > maximumExtension)
-	{
-		this->extension = maximumExtension;
+		return this->robotComponentsMap[id];
 	}
 	else
 	{
-		this->extension = newExtension;
-	}
-	
-	// Changing the characteristics of the linear actuator
-	this->height += this->extension - pastExtension;
-	
-	double dx = (this->extension - pastExtension) * cos(this->angle);
-	double dy = (this->extension - pastExtension) * sin(this->angle);
-	
-	RobotComponent* currentComponent = this->front;
-	
-	while (currentComponent != nullptr)
-	{
-		currentComponent->position.x += dx;
-		currentComponent->position.y += dy;
-		
-		currentComponent = currentComponent->front;
-	}
+		return nullptr;
+	}	
 }
 
-double LinearActuator::getExtension()
+RobotComponent* Robot::getBase()
 {
-	return this->extension;
+	return this->base;
 }
 
-class Motor: public RobotComponent
+RobotComponent* Robot::getEnd()
 {
-	private:
-		double rotatedAngle;
-	public:
-		double maximumRotation;
-		double radius;
-	
-		Motor();
-		Motor
-		(
-			long int id, 
-			std::string name, 
-			Coordinate position, 
-			double angle,
-			double mass, 
-			double maximumRotation, 
-			double radius			
-		);
-		void rotate(double angularDisplacement);
-		double getRotatedAngle();
-};
-
-Motor::Motor() {}
-
-Motor::Motor
-(
-	long int id, 
-	std::string name, 
-	Coordinate position, 
-	double angle,
-	double mass,
-	double maximumRotation, 
-	double radius
-)
-{
-	// Initialising base class attributes
-	this->id = id;
-	this->name = name;
-	this->position = position;
-	this->angle = angle;
-	this->mass = mass;
-	this->front = nullptr;
-	
-	// Initialising child class attributes
-	this->rotatedAngle = 0;    // Setting starting rotated angle to 0 at the beginning
-	this->maximumRotation = maximumRotation;
-	this->radius = radius;
-}
-
-void Motor::rotate(double angularDisplacement)
-{
-	double pastAngle = this->rotatedAngle;
-	double newAngle = this->rotatedAngle + angularDisplacement;
-
-	// If the maximum rotation is not 2 pi (which means that the angle cannot rotate fully) we first have to check that 
-	// the maximum and minimum rotations are not surpassed
-	if ((2 * M_PI - this->maximumRotation) > 0.1)	// Allow a small error of 0.1, due to floating point inaccuracies 
-	{
-		if (newAngle > this->maximumRotation)
-		{
-			newAngle = this->maximumRotation;
-		}
-		else if (newAngle < 0)
-		{
-			newAngle = 0;
-		}		
-	}
-	else
-	{
-		// Ensure that the newAngle is between 0 and 2 pi radians
-		// This is to be able to check if the motor has rotated past its maximum rotation
-		// A while loop is necessary in case the magnitude of the angular displacement is greater than 2 pi
-		while (!((newAngle >= 0) && (newAngle < 2 * M_PI)))
-		{
-			if (newAngle < 0)
-			{
-				newAngle += 2 * M_PI;	// This will add 2 pi to angle until it comes into range
-			}
-			if (newAngle >= 2 * M_PI)
-			{
-				newAngle -= 2 * M_PI;	// This willl remove 2 pi from angle until it comes into range
-			}
-		}
-	}
-	
-	this->rotatedAngle = newAngle;
-
-	RobotComponent* currentComponent = this->front;
-
-	while (currentComponent != nullptr)
-	{
-		currentComponent->position.rotateAbout(this->position, this->rotatedAngle - pastAngle);
-		currentComponent->angle += (this->rotatedAngle - pastAngle);
-		currentComponent = currentComponent->front;
-	}
-}
-
-double Motor::getRotatedAngle()
-{
-	return this->rotatedAngle;
+	return this->end;
 }

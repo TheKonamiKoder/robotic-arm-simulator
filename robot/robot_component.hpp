@@ -20,6 +20,7 @@ class RobotComponent
 	
 		RobotComponent();
 		RobotComponent(id_t id, std::string name, Coordinate position, double angle, double mass);
+		virtual ~RobotComponent() = default;	// This enables RTTI, which will allow me to use dynamic cast
 		id_t getId();
 };
 
