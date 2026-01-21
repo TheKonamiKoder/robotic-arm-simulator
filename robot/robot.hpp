@@ -417,6 +417,8 @@ Robot Robot::loadFromFile(id_t id, std::string filename)
 		}
 	}
 	
+	file.close();
+
 	return robot;
 }
 
