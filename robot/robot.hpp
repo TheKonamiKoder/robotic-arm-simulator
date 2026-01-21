@@ -62,7 +62,7 @@ public:
 	void attachBaseTo(RobotComponent* robotComponent);
 	void remove(RobotComponent* robotComponent);
 	Coordinate calculateCentreOfMass();
-	void store(std::string filename);
+	void saveToFile(std::string filename);
 	static Robot loadFromFile(id_t id, std::string filename);
 	id_t getId();
 	double getMass();
@@ -228,7 +228,7 @@ Coordinate Robot::calculateCentreOfMass()
 // Extension | Maximum Extension | Height | Width
 // For a Motor, the line format is: ID | Name | Position x | Position y | Angle | Mass | MOTOR | Rotated Angle | Maximum
 // Rotation | Radius
-void Robot::store(std::string filename)
+void Robot::saveToFile(std::string filename)
 {
 	std::ofstream file(filename);
 
