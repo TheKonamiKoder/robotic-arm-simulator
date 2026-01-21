@@ -131,9 +131,6 @@ void Robot::attachToEnd(RobotComponent* robotComponent)
 // Attaches the second component to the first component
 void Robot::attachTo(RobotComponent* a, RobotComponent* b)
 {
-	this->robotComponentsMap[b->getId()] = b;
-	this->mass += b->mass;
-
 	// Check if a is end as slightly different logic will need to be implemented
 	if (a == this->end)
 	{
@@ -141,6 +138,9 @@ void Robot::attachTo(RobotComponent* a, RobotComponent* b)
 	}
 	else
 	{
+		this->robotComponentsMap[b->getId()] = b;
+		this->mass += b->mass;
+
 		// Inserts b in front of a
 		b->front = a->front;	// The component in front of a is now in front of b
 		a->front = b;			// The component in front of a is now b
@@ -185,6 +185,8 @@ void Robot::remove(RobotComponent* robotComponent)
 			
 			currentComponent->front = robotComponent->front;
 		}
+
+		this->mass -= robotComponent->mass;
 
 		this->robotComponentsMap.erase(robotComponent->getId());	// Remove the robot component from the map
 		delete robotComponent;										// Delete the robot component from the heap
