@@ -245,6 +245,12 @@ void Robot::saveToFile(const std::string& filename) const
 // to the robot
 void Robot::loadFromFile(const std::string& filename)
 {
+	// Remove any components that have already been added to the robot
+	while (this->end != nullptr)
+	{
+		this->remove(this->end);
+	}
+	
 	std::ifstream file(filename);
 	
 	std::string robot_name;

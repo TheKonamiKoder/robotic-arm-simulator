@@ -37,4 +37,3 @@ public:
 	RobotComponent* getBase() const;
 	RobotComponent* getEnd() const;
 };
-
