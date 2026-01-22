@@ -4,13 +4,13 @@
 #include <fstream>
 #include <iostream>
 
-#include "test_utils.hpp"
-#include "../coordinate.hpp"
-#include "../segment.hpp"
-#include "../linear_actuator.hpp"
-#include "../motor.hpp"
-#include "../linear_actuator.hpp"
-#include "../robot.hpp"
+#include "../test_utils.hpp"
+#include "../../robot/coordinate.hpp"
+#include "../../robot/segment.hpp"
+#include "../../robot/linear_actuator.hpp"
+#include "../../robot/motor.hpp"
+#include "../../robot/linear_actuator.hpp"
+#include "../../robot/robot.hpp"
 
 int main()
 {

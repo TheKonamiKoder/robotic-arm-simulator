@@ -2,13 +2,15 @@
     "tasks": [
         {
             "type": "cppbuild",
-            "label": "C/C++: cl.exe build active file",
+            "label": "Build Active Test",
             "command": "cl.exe",
             "args": [
                 "/Zi",
                 "/EHsc",
                 "/nologo",
-                "/Fe${fileDirname}\\${fileBasenameNoExtension}.exe",
+                "/Fe${fileDirname}\\bin\\${fileBasenameNoExtension}.exe",
+                "${workspaceFolder}\\robot\\*.cpp",
+                "${workspaceFolder}\\tests\\test_utils.cpp",
                 "${file}"
             ],
             "options": {
