@@ -236,7 +236,7 @@ int main()
         // Test if robot can load from file which has 0 components in it
         // This corresponds to test 5 from the design section
         {
-            Robot robot(0, "");
+            Robot robot(0);
             robot.loadFromFile("robot_test_files/robot_with_0_components.rbt");
 
             test("Loading from File with 0 Components", robot.name == "Robot");
@@ -245,7 +245,7 @@ int main()
         // Test if robot can be loaded from file which has 1 component in it
         // This corresponds to test 6 from the design section
         {
-            Robot robot(0, "");
+            Robot robot(0);
             robot.loadFromFile("robot_test_files/robot_with_1_component.rbt");
 
             test
@@ -259,7 +259,7 @@ int main()
         // Test that all types of components can be loaded
         // This corresponds to test 7 from the design section
         {
-            Robot robot(0, "");
+            Robot robot(0);
             robot.loadFromFile("robot_test_files/robot_with_3_components.rbt");
 
             test
@@ -280,7 +280,7 @@ int main()
         // Test that all types of components can be loaded
         // This corresponds to test 8 from the design section
         {
-            Robot robot(0, "");
+            Robot robot(0);
             robot.loadFromFile("robot_test_files/robot_with_5_components.rbt");
 
             test
