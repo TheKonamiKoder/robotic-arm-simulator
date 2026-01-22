@@ -1,0 +1,6 @@
+Robot
+0|Segment|0|0|0|5|SEGMENT|10|5|
+1|Linear Actuator|10|0|0|5|LINEAR ACTUATOR|0|10|10|5|
+2|Motor|20|0|0|5|MOTOR|0|2|5|
+3|Segment 2|30|0|0|5|SEGMENT|10|5|
+4|Segment 3|40|0|0|5|SEGMENT|10|5|

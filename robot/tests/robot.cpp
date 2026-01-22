@@ -230,7 +230,63 @@ int main()
         }
     }
  
-    // TODO: Test saving/loading function from file
+    std::cout << "\nTesting loading from file function of robot\n";
+    {
+        // Test if robot can load from file which has 0 components in it
+        // This corresponds to test 5 from the design section
+        {
+            Robot robot = Robot::loadFromFile(0, "robot_test_files/robot_with_0_components.rbt");
+
+            test("Loading from File with 0 Components", robot.name == "Robot");
+        }
+
+        // Test if robot can be loaded from file which has 1 component in it
+        // This corresponds to test 6 from the design section
+        {
+            Robot robot = Robot::loadFromFile(0, "robot_test_files/robot_with_1_component.rbt");
+
+            test
+            (
+                "Loading from File with 1 Component", 
+                *static_cast<Segment*>(robot.getBase()) == Segment(0, "Segment", Coordinate(0, 0), 0, 5, 10, 5)
+            );
+        }
+
+        // Test if robot can be loaded from file which has 3 components in it
+        // Test that all types of components can be loaded
+        // This corresponds to test 7 from the design section
+        {
+            Robot robot = Robot::loadFromFile(0, "robot_test_files/robot_with_3_components.rbt");
+
+            test
+            (
+                "Loading from File with 3 Components - Linear Actuator",
+                *static_cast<LinearActuator*>(robot.getBase()->front) == 
+                LinearActuator(1, "Linear Actuator", Coordinate(10, 0), 0, 5, 10, 10, 5)
+            );
+
+            test
+            (
+                "Loading from File with 3 Components - Motor",
+                *static_cast<Motor*>(robot.getEnd()) == Motor(2, "Motor", Coordinate(20, 0), 0, 5, 2, 5)
+            );
+        }
+
+        // Test if robot can be loaded from file which has 5 components in it
+        // Test that all types of components can be loaded
+        // This corresponds to test 8 from the design section
+        {
+            Robot robot = Robot::loadFromFile(0, "robot_test_files/robot_with_3_components.rbt");
+            
+            test
+            (
+                "Loading from File with 5 Components",
+                (*static_cast<Segment*>(robot.getBase()->front->front->front) == 
+                Segment(3, "Segment 2", Coordinate(30, 0), 0, 5, 10, 5)) &&
+                (*static_cast<Segment*>(robot.getEnd()) == Segment(4, "Segment 3", Coordinate(40, 0), 0, 5, 10, 5))
+            );
+        }
+    }
     // TODO: Test centre of mass calculations
     // TODO: Test inverse kinematics
 
