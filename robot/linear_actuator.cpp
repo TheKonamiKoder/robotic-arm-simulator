@@ -61,6 +61,13 @@ void LinearActuator::translate(double displacement)
 	}
 }
 
+Coordinate LinearActuator::getCentreOfMass() const
+{
+	Coordinate centreOfMass = Coordinate(this->position.x + (height / 2), this->position.y + (height / 2));
+	centreOfMass.rotateAbout(this->position, this->angle);
+	return centreOfMass;
+}
+
 double LinearActuator::getExtension() const
 {
 	return this->extension;

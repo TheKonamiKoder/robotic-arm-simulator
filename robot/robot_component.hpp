@@ -23,6 +23,8 @@ class RobotComponent
 	
 		RobotComponent() = default;
 		RobotComponent(id_t id, std::string name, Coordinate position, double angle, double mass);
+		virtual Coordinate getCentreOfMass() const;
 		id_t getId() const;
+		
 		friend bool operator==(const RobotComponent& lhs, const RobotComponent& rhs);
 };

@@ -29,5 +29,6 @@ class LinearActuator: public RobotComponent
 			double width
 		);
 		void translate(double displacement);
+		Coordinate getCentreOfMass() const override;
 		double getExtension() const;
 };

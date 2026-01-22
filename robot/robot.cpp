@@ -152,29 +152,6 @@ void Robot::remove(RobotComponent* robotComponent)
 	}
 }
 
-// This method returns the position of the centre of mass of the robot
-// If the robot is "empty", then the function will return (0, 0)
-Coordinate Robot::calculateCentreOfMass() const
-{
-	Coordinate centreOfMass(0, 0);
-
-	RobotComponent* currentComponent = this->base;
-
-	while (currentComponent != nullptr)
-	{
-		centreOfMass.x += currentComponent->position.x * currentComponent->mass;
-		centreOfMass.y += currentComponent->position.y * currentComponent->mass;
-	}
-	
-	if (this->mass != 0)
-	{
-		centreOfMass.x /= this->mass;
-		centreOfMass.y /= this->mass;
-	}
-
-	return centreOfMass;
-}
-
 // This method will store the data in the file
 //
 // The format of the file is like so:
@@ -383,6 +360,29 @@ void Robot::loadFromFile(const std::string& filename)
 	}
 	
 	file.close();
+}
+
+// This method returns the position of the centre of mass of the robot
+// If the robot is "empty", then the function will return (0, 0)
+Coordinate Robot::getCentreOfMass() const
+{
+	Coordinate centreOfMass(0, 0);
+
+	RobotComponent* currentComponent = this->base;
+
+	while (currentComponent != nullptr)
+	{
+		centreOfMass.x += currentComponent->getCentreOfMass().x * currentComponent->mass;
+		centreOfMass.y += currentComponent->getCentreOfMass().y * currentComponent->mass;
+	}
+	
+	if (this->mass != 0)
+	{
+		centreOfMass.x /= this->mass;
+		centreOfMass.y /= this->mass;
+	}
+
+	return centreOfMass;
 }
 
 id_t Robot::getId() const
