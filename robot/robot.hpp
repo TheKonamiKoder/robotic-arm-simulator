@@ -290,8 +290,8 @@ Robot Robot::loadFromFile(id_t id, std::string filename)
 	
 	std::string robot_name;
 	std::getline(file, robot_name);
-	robot_name.erase(robot_name.find_last_not_of(" \t\n\r\f\v"));	// Trim the end of the name 
-	Robot robot(id, robot_name);									// Create robot class
+	robot_name.erase(robot_name.find_last_not_of(" \t\n\r\f\v") + 1);	// Trim the end of the name 
+	Robot robot(id, robot_name);										// Create robot class
 
 	std::string line;
 	while (std::getline(file, line))
