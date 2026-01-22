@@ -11,6 +11,8 @@ class Motor: public RobotComponent
 {
 	private:
 		double rotatedAngle;
+	protected:
+		bool equals(const RobotComponent& other) const override;
 	public:
 		double maximumRotation;
 		double radius;
@@ -29,6 +31,16 @@ class Motor: public RobotComponent
 		void rotate(double angularDisplacement);
 		double getRotatedAngle();
 };
+
+bool Motor::equals(const RobotComponent& other) const
+{
+	const Motor& motor = static_cast<const Motor&>(other);
+
+	return RobotComponent::equals(other) 					&&
+		   this->rotatedAngle == motor.rotatedAngle 		&&
+		   this->maximumRotation == motor.maximumRotation 	&&
+		   this->radius == motor.radius;
+}
 
 Motor::Motor() {}
 

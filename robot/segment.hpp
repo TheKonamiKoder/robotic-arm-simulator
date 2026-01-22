@@ -6,6 +6,8 @@
 
 class Segment: public RobotComponent
 {
+	protected:
+		bool equals(const RobotComponent& other) const override;
 	public:
 		double height;
 		double width;
@@ -13,6 +15,15 @@ class Segment: public RobotComponent
 		Segment();
 		Segment(id_t id, std::string name, Coordinate position, double angle, double mass, double height, double width);
 };
+
+bool Segment::equals(const RobotComponent& other) const
+{
+	const Segment& segment = static_cast<const Segment&>(other);
+
+	return RobotComponent::equals(other) 	&&
+		   this->height == segment.height 	&&
+		   this->width == segment.width;
+}
 
 Segment::Segment() {}
 

@@ -8,7 +8,8 @@ class Coordinate
         
         Coordinate();
         Coordinate(double x, double y);
-        void rotateAbout(Coordinate origin, double angle);
+        void rotateAbout(const Coordinate& origin, double angle);
+        friend bool operator==(const Coordinate& lhs, const Coordinate& rhs);
 };
 
 Coordinate::Coordinate() 
@@ -23,7 +24,7 @@ Coordinate::Coordinate(double x, double y)
     this->y = y;
 }
 
-void Coordinate::rotateAbout(Coordinate origin, double angle)
+void Coordinate::rotateAbout(const Coordinate& origin, double angle)
 {
     // Calculate x and y relative to the origin coordinate, as we are rotating around the origin
     double x_rel = this->x - origin.x;
@@ -35,4 +36,9 @@ void Coordinate::rotateAbout(Coordinate origin, double angle)
 
     this->x = origin.x + new_x_rel;
     this->y = origin.y + new_y_rel;
+}
+
+bool operator==(const Coordinate& lhs, const Coordinate& rhs)
+{
+    return (lhs.x == rhs.x) && (lhs.y == rhs.y);
 }
