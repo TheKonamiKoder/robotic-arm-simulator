@@ -128,4 +128,110 @@ int main()
             (isCloseEnough(robot.getMass(), 30))
         );
     }
+    
+    std::cout << "\nTesting save to file function of the robot\n";
+    {
+
+        std::string filename = "robot_test_files/save_file.rbt";
+        Robot robot = Robot(0, "Robot");
+        
+        // Test Robot can save file when there are no components
+        // This corresponds to test 1 in my design section
+        robot.saveToFile(filename);
+        std::ifstream file(filename);
+        
+        std::string robot_name;
+	    std::getline(file, robot_name);
+	    robot_name.erase(robot_name.find_last_not_of(" \t\n\r\f\v") + 1);
+        
+        test("Saving Empty Robot", robot_name == "Robot");
+        
+        file.close();
+
+        // Test robot can save file when there is one component
+        // This corresponds to test 2 in my design section
+        robot.attachToEnd(new Segment(0, "Segment", Coordinate(0, 0), 0, 5, 10, 5));
+        robot.saveToFile(filename);
+
+        {
+            std::ifstream file(filename);
+            std::string line;
+            std::getline(file, line);   // This is the name of the robot, which we have already tested
+            std::getline(file, line);   // This is the first component
+            line.erase(line.find_last_not_of(" \t\n\r\f\v") + 1);
+            
+            test("Saving Robot with 1 Component", line == "0|Segment|0|0|0|5|SEGMENT|10|5|");
+
+            file.close();
+        }
+
+        // Test robot can save the file when there are three components
+        // This will test that all the robot component types are being saved correctly
+        // This corresponds to test 3 in my design seciton
+        robot.attachToEnd(new LinearActuator(1, "Linear Actuator", Coordinate(10, 0), 0, 5, 10, 10, 5));
+        robot.attachToEnd(new Motor(2, "Motor", Coordinate(20, 0), 0, 5, 2, 5));
+        robot.saveToFile(filename);
+
+        {
+            std::ifstream file(filename);
+            std::string line;
+            std::string linear_actuator;
+            std::string motor;
+            std::getline(file, line);   
+            std::getline(file, line);               
+            std::getline(file, linear_actuator);
+            std::getline(file, motor);
+            linear_actuator.erase(linear_actuator.find_last_not_of(" \t\n\r\f\v") + 1);
+            motor.erase(motor.find_last_not_of(" \t\n\r\f\v") + 1);
+
+            test
+            (
+                "Saving Robot with 3 Components - Linear Actuator", 
+                linear_actuator == "1|Linear Actuator|10|0|0|5|LINEAR ACTUATOR|0|10|10|5|"
+            );
+
+            test
+            (
+                "Saving Robot with 3 Components - Motor",
+                motor == "2|Motor|20|0|0|5|MOTOR|0|2|5|"
+            );
+
+            file.close();
+        }
+
+        // Test robot can save file when there are 5 components
+        // This corresponds to test 4 in my design section
+        robot.attachToEnd(new Segment(3, "Segment 2", Coordinate(30, 0), 0, 5, 10, 5));
+        robot.attachToEnd(new Segment(4, "Segment 3", Coordinate(40, 0), 0, 5, 10, 5));
+        robot.saveToFile(filename);
+
+        {
+            std::ifstream file(filename);
+            std::string line;
+            std::string segment_2;
+            std::string segment_3;
+            std::getline(file, line);   
+            std::getline(file, line);
+            std::getline(file, line);
+            std::getline(file, line);               
+            std::getline(file, segment_2);
+            std::getline(file, segment_3);
+            segment_2.erase(segment_2.find_last_not_of(" \t\n\r\f\v") + 1);
+            segment_3.erase(segment_3.find_last_not_of(" \t\n\r\f\v") + 1);
+
+            test
+            (
+                "Saving Robot with 5 Components",
+                (segment_2 == "3|Segment 2|30|0|0|5|SEGMENT|10|5|") &&
+                (segment_3 == "4|Segment 3|40|0|0|5|SEGMENT|10|5|")
+            );
+
+            file.close();
+        }
+    }
+ 
+    // TODO: Test saving/loading function from file
+    // TODO: Test centre of mass calculations
+    // TODO: Test inverse kinematics
+
 }
