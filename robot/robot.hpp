@@ -63,7 +63,7 @@ public:
 	void remove(RobotComponent* robotComponent);
 	Coordinate calculateCentreOfMass();
 	void saveToFile(std::string filename);
-	static Robot loadFromFile(id_t id, std::string filename);
+	void loadFromFile(std::string filename);
 	id_t getId();
 	double getMass();
 	RobotComponent* getComponentFromId(id_t id);
@@ -284,14 +284,14 @@ void Robot::saveToFile(std::string filename)
 // This static method will return a robot after reading it from a file
 // It will iterate through all the robot components in the file (line by line) and then attach these robot components
 // to the robot
-Robot Robot::loadFromFile(id_t id, std::string filename)
+void Robot::loadFromFile(std::string filename)
 {
 	std::ifstream file(filename);
 	
 	std::string robot_name;
 	std::getline(file, robot_name);
 	robot_name.erase(robot_name.find_last_not_of(" \t\n\r\f\v") + 1);	// Trim the end of the name 
-	Robot robot(id, robot_name);										// Create robot class
+	this->name = robot_name;
 
 	std::string line;
 	while (std::getline(file, line))
@@ -301,7 +301,7 @@ Robot Robot::loadFromFile(id_t id, std::string filename)
 		// The parameter counter stores the current parameter as they get appended to the list
 		int parameter_counter = 0;
 		std::string component_type = "";
-		std::array<std::string, 7> common_parameters;
+		std::array<std::string, 6> common_parameters;
 		std::array<std::string, 2> segment_parameters;
 		std::array<std::string, 4> linear_actuator_parameters;
 		std::array<std::string, 3> motor_parameters;
@@ -357,7 +357,7 @@ Robot Robot::loadFromFile(id_t id, std::string filename)
 
 		if (component_type == SEGMENT_IDENTIFIER)
 		{
-			robot.attachToEnd
+			this->attachToEnd
 			(
 				new Segment
 				(
@@ -373,7 +373,7 @@ Robot Robot::loadFromFile(id_t id, std::string filename)
 		}
 		else if (component_type == LINEAR_ACTUATOR_IDENTIFIER)
 		{
-			robot.attachToEnd
+			this->attachToEnd
 			(
 				new LinearActuator
 				(
@@ -391,14 +391,14 @@ Robot Robot::loadFromFile(id_t id, std::string filename)
 			// Use the translate method to extend the linear actuator. This is necessary because the extension can
 			// only be modified by the public method translate since it is a private attribute and can't be modified
 			// directly
-			static_cast<LinearActuator*>(robot.getEnd())->translate
+			static_cast<LinearActuator*>(this->end)->translate
 			(
 				std::stod(linear_actuator_parameters[LINEAR_ACTUATOR_EXTENSION])
 			);
 		}
 		else if (component_type == MOTOR_IDENTIFIER)
 		{
-			robot.attachToEnd
+			this->attachToEnd
 			(
 				new Motor
 				(
@@ -413,13 +413,11 @@ Robot Robot::loadFromFile(id_t id, std::string filename)
 			);
 
 			// Use the rotate method in order to chang ethe rotated angle private attribute by the motor
-			static_cast<Motor*>(robot.getEnd())->rotate(std::stod(motor_parameters[MOTOR_ROTATED_ANGLE]));
+			static_cast<Motor*>(this->getEnd())->rotate(std::stod(motor_parameters[MOTOR_ROTATED_ANGLE]));
 		}
 	}
 	
 	file.close();
-
-	return robot;
 }
 
 id_t Robot::getId()
