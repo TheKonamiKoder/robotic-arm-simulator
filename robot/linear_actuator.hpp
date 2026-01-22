@@ -8,13 +8,16 @@ class LinearActuator: public RobotComponent
 {
 	private:
 		double extension;
+	protected:
+		bool equals(const RobotComponent& other) const override;
 	public:
 		double maximumExtension;
 		double height;
 		double width;
 		
 		LinearActuator();
-		LinearActuator(
+		LinearActuator
+		(
 			id_t id, 
 			std::string name, 
 			Coordinate position, 
@@ -27,6 +30,17 @@ class LinearActuator: public RobotComponent
 		void translate(double displacement);
 		double getExtension();
 };
+
+bool LinearActuator::equals(const RobotComponent& other) const
+{
+	const LinearActuator& linear_actuator = static_cast<const LinearActuator&>(other);
+	
+	return RobotComponent::equals(other)								&&
+		   this->extension == linear_actuator.extension 				&&
+		   this->maximumExtension == linear_actuator.maximumExtension 	&&
+		   this->height == linear_actuator.height 						&&
+		   this->width == linear_actuator.width;
+}
 
 LinearActuator::LinearActuator() {}
 
