@@ -1,8 +1,8 @@
 #define _USE_MATH_DEFINES
 
+#include <array>
 #include <cmath>
 #include <iostream>
-#include <array>
 
 #include "test_utils.hpp"
 #include "../coordinate.hpp"
