@@ -10,14 +10,14 @@
 class Motor: public RobotComponent
 {
 	private:
-		double rotatedAngle;
+		double rotatedAngle = 0;
 	protected:
 		bool equals(const RobotComponent& other) const override;
 	public:
 		double maximumRotation;
 		double radius;
 	
-		Motor();
+		Motor() = default;
 		Motor
 		(
 			id_t id, 
@@ -29,7 +29,7 @@ class Motor: public RobotComponent
 			double radius			
 		);
 		void rotate(double angularDisplacement);
-		double getRotatedAngle();
+		double getRotatedAngle() const;
 };
 
 bool Motor::equals(const RobotComponent& other) const
@@ -42,8 +42,6 @@ bool Motor::equals(const RobotComponent& other) const
 		   this->radius == motor.radius;
 }
 
-Motor::Motor() {}
-
 Motor::Motor
 (
 	id_t id, 
@@ -53,21 +51,7 @@ Motor::Motor
 	double mass,
 	double maximumRotation, 
 	double radius
-)
-{
-	// Initialising base class attributes
-	this->id = id;
-	this->name = name;
-	this->position = position;
-	this->angle = angle;
-	this->mass = mass;
-	this->front = nullptr;
-	
-	// Initialising child class attributes
-	this->rotatedAngle = 0;    // Setting starting rotated angle to 0 at the beginning
-	this->maximumRotation = maximumRotation;
-	this->radius = radius;
-}
+) : RobotComponent(id, name, position, angle, mass), maximumRotation(maximumRotation), radius(radius) {}
 
 void Motor::rotate(double angularDisplacement)
 {
@@ -117,7 +101,7 @@ void Motor::rotate(double angularDisplacement)
 	}
 }
 
-double Motor::getRotatedAngle()
+double Motor::getRotatedAngle() const
 {
 	return this->rotatedAngle;
 }

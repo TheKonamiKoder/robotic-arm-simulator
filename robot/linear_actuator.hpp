@@ -7,7 +7,7 @@
 class LinearActuator: public RobotComponent
 {
 	private:
-		double extension;
+		double extension = 0;
 	protected:
 		bool equals(const RobotComponent& other) const override;
 	public:
@@ -15,7 +15,7 @@ class LinearActuator: public RobotComponent
 		double height;
 		double width;
 		
-		LinearActuator();
+		LinearActuator() = default;
 		LinearActuator
 		(
 			id_t id, 
@@ -28,7 +28,7 @@ class LinearActuator: public RobotComponent
 			double width
 		);
 		void translate(double displacement);
-		double getExtension();
+		double getExtension() const;
 };
 
 bool LinearActuator::equals(const RobotComponent& other) const
@@ -42,8 +42,6 @@ bool LinearActuator::equals(const RobotComponent& other) const
 		   this->width == linear_actuator.width;
 }
 
-LinearActuator::LinearActuator() {}
-
 LinearActuator::LinearActuator
 (
 	id_t id, 
@@ -54,22 +52,7 @@ LinearActuator::LinearActuator
 	double maximumExtension, 
 	double height, 
 	double width
-)
-{
-	// Initialising base class attributes
-	this->id = id;
-	this->name = name;
-	this->position = position;
-	this->angle = angle;
-	this->mass = mass;
-	this->front = nullptr;
-	
-	// Initialising child class attributes
-	this->extension = 0;    // Setting extension to 0 at the beginning
-	this->maximumExtension = maximumExtension;
-	this->height = height;
-	this->width = width;
-}
+) : RobotComponent(id, name, position, angle, mass), maximumExtension(maximumExtension), height(height), width(width) {}
 
 void LinearActuator::translate(double displacement)
 {	
@@ -107,7 +90,7 @@ void LinearActuator::translate(double displacement)
 	}
 }
 
-double LinearActuator::getExtension()
+double LinearActuator::getExtension() const
 {
 	return this->extension;
 }

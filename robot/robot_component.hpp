@@ -18,12 +18,11 @@ class RobotComponent
 		double mass;
 		
 		// Front pointer to create a linked list
-		RobotComponent* front;				
+		RobotComponent* front = nullptr;				
 	
-		RobotComponent();
+		RobotComponent() = default;
 		RobotComponent(id_t id, std::string name, Coordinate position, double angle, double mass);
-		virtual ~RobotComponent() = default;	// This enables RTTI, which will allow me to use dynamic cast
-		id_t getId();
+		id_t getId() const;
 		friend bool operator==(const RobotComponent& lhs, const RobotComponent& rhs);
 };
 
@@ -36,21 +35,10 @@ bool RobotComponent::equals(const RobotComponent& other) const
 		   this->mass == other.mass;
 }
 
-RobotComponent::RobotComponent() {}
-
 RobotComponent::RobotComponent(id_t id, std::string name, Coordinate position, double angle, double mass)
-{
-	this->id = id;
-	this->name = name;
-	this->position = position;
-	this->angle = angle;
-	this->mass = mass;
+	: id(id), name(name), position(position), angle(angle), mass(mass) {}
 
-	// Initialised to null pointers as they don't point to anything at the start
-	this->front = nullptr;
-}
-
-id_t RobotComponent::getId()
+id_t RobotComponent::getId() const
 {
 	return this->id;
 }

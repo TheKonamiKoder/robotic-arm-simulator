@@ -3,26 +3,16 @@
 class Coordinate 
 {
     public:
-        double x;
-        double y;
+        double x = 0;
+        double y = 0;
         
-        Coordinate();
+        Coordinate() = default;
         Coordinate(double x, double y);
         void rotateAbout(const Coordinate& origin, double angle);
         friend bool operator==(const Coordinate& lhs, const Coordinate& rhs);
 };
 
-Coordinate::Coordinate() 
-{
-    this->x = 0;
-    this->y = 0;
-}
-
-Coordinate::Coordinate(double x, double y) 
-{
-    this->x = x;
-    this->y = y;
-}
+Coordinate::Coordinate(double x, double y) : x(x), y(y) {}
 
 void Coordinate::rotateAbout(const Coordinate& origin, double angle)
 {

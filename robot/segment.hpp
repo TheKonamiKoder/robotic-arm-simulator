@@ -12,7 +12,7 @@ class Segment: public RobotComponent
 		double height;
 		double width;
 	
-		Segment();
+		Segment() = default;
 		Segment(id_t id, std::string name, Coordinate position, double angle, double mass, double height, double width);
 };
 
@@ -25,19 +25,5 @@ bool Segment::equals(const RobotComponent& other) const
 		   this->width == segment.width;
 }
 
-Segment::Segment() {}
-
 Segment::Segment(id_t id, std::string name, Coordinate position, double angle, double mass, double height, double width)
-{
-	// Initialising base class attributes
-	this->id = id;
-	this->name = name;
-	this->position = position;
-	this->angle = angle;
-	this->mass = mass;
-	this->front = nullptr;
-	
-	// Initialising child class attributes
-	this->height = height;
-	this->width = width;
-}
+	: RobotComponent(id, name, position, angle, mass), height(height), width(width) {}

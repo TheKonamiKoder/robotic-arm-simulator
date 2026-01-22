@@ -46,41 +46,35 @@ class Robot
 {
 private:
 	id_t id;
-	double mass;
+	double mass = 0;
 	std::unordered_map<id_t, RobotComponent*> robotComponentsMap;
-	RobotComponent* base;
-	RobotComponent* end;
+	RobotComponent* base = nullptr;
+	RobotComponent* end = nullptr;
 public:
-	std::string name;
+	std::string name = "";
 
-	Robot();
+	Robot() = default;
+	Robot(id_t id);
 	Robot(id_t id, std::string name);
 	~Robot();
-	id_t generateId();
+	id_t generateId() const;
 	void attachToEnd(RobotComponent* robotComponent);
 	void attachTo(RobotComponent* to, RobotComponent* next);
 	void attachBaseTo(RobotComponent* robotComponent);
 	void remove(RobotComponent* robotComponent);
-	Coordinate calculateCentreOfMass();
-	void saveToFile(std::string filename);
-	void loadFromFile(std::string filename);
-	id_t getId();
-	double getMass();
+	Coordinate calculateCentreOfMass() const;
+	void saveToFile(const std::string& filename) const;
+	void loadFromFile(const std::string& filename);
+	id_t getId() const;
+	double getMass() const;
 	RobotComponent* getComponentFromId(id_t id);
-	RobotComponent* getBase();
-	RobotComponent* getEnd();
+	RobotComponent* getBase() const;
+	RobotComponent* getEnd() const;
 };
 
-Robot::Robot() {}
+Robot::Robot(id_t id) : id(id) {}
 
-Robot::Robot(id_t id, std::string name)
-{
-	this->id = id;
-	this->name = name;
-
-	this->base = nullptr;
-	this->end = nullptr;
-}
+Robot::Robot(id_t id, std::string name) : id(id), name(name) {}
 
 // Since pointers have been used, the destructor needs to be manually defined and all RobotComponents need to be
 // removed from the heap manually
@@ -98,7 +92,7 @@ Robot::~Robot()
 // It will generate a unique id that is not already part of the robot
 // This is important as each component will need to have its own id and this id needs to be unique for each component
 // in the robot
-id_t Robot::generateId()
+id_t Robot::generateId() const
 {
 	static std::random_device random_device;	// Static variables used so that it does not need to be re-declared
 	static std::mt19937 generator(random_device());
@@ -195,7 +189,7 @@ void Robot::remove(RobotComponent* robotComponent)
 
 // This method returns the position of the centre of mass of the robot
 // If the robot is "empty", then the function will return (0, 0)
-Coordinate Robot::calculateCentreOfMass()
+Coordinate Robot::calculateCentreOfMass() const
 {
 	Coordinate centreOfMass(0, 0);
 
@@ -228,7 +222,7 @@ Coordinate Robot::calculateCentreOfMass()
 // Extension | Maximum Extension | Height | Width
 // For a Motor, the line format is: ID | Name | Position x | Position y | Angle | Mass | MOTOR | Rotated Angle | Maximum
 // Rotation | Radius
-void Robot::saveToFile(std::string filename)
+void Robot::saveToFile(const std::string& filename) const
 {
 	std::ofstream file(filename);
 
@@ -284,7 +278,7 @@ void Robot::saveToFile(std::string filename)
 // This static method will return a robot after reading it from a file
 // It will iterate through all the robot components in the file (line by line) and then attach these robot components
 // to the robot
-void Robot::loadFromFile(std::string filename)
+void Robot::loadFromFile(const std::string& filename)
 {
 	std::ifstream file(filename);
 	
@@ -420,12 +414,12 @@ void Robot::loadFromFile(std::string filename)
 	file.close();
 }
 
-id_t Robot::getId()
+id_t Robot::getId() const
 {
 	return this->id;
 }
 
-double Robot::getMass()
+double Robot::getMass() const
 {
 	return this->mass;
 }
@@ -442,12 +436,12 @@ RobotComponent* Robot::getComponentFromId(id_t id)
 	}	
 }
 
-RobotComponent* Robot::getBase()
+RobotComponent* Robot::getBase() const
 {
 	return this->base;
 }
 
-RobotComponent* Robot::getEnd()
+RobotComponent* Robot::getEnd() const
 {
 	return this->end;
 }
