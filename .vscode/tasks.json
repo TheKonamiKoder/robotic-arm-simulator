@@ -8,9 +8,13 @@
                 "/Zi",
                 "/EHsc",
                 "/nologo",
+
+                "/I${workspaceFolder}",
+
                 "/Fe${workspaceFolder}\\bin\\${fileBasenameNoExtension}.exe",
                 "/Fo${workspaceFolder}\\build\\",
                 "/Fd${workspaceFolder}\\build\\",
+
                 "${workspaceFolder}\\robot\\*.cpp",
                 "${workspaceFolder}\\tests\\test_utils.cpp",
                 "${file}"

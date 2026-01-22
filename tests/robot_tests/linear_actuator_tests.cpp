@@ -4,9 +4,9 @@
 #include <iostream>
 
 #include "../test_utils.hpp"
-#include "../../robot/coordinate.hpp"
-#include "../../robot/linear_actuator.hpp"
-#include "../../robot/segment.hpp"
+#include "robot/coordinate.hpp"
+#include "robot/linear_actuator.hpp"
+#include "robot/segment.hpp"
 
 int main() 
 {

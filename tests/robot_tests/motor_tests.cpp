@@ -5,9 +5,9 @@
 #include <iostream>
 
 #include "../test_utils.hpp"
-#include "../../robot/coordinate.hpp"
-#include "../../robot/motor.hpp"
-#include "../../robot/segment.hpp"
+#include "robot/coordinate.hpp"
+#include "robot/motor.hpp"
+#include "robot/segment.hpp"
 
 // Defining the following macros so that positions of corners in array is clear
 #define TOP_LEFT 0
