@@ -391,7 +391,7 @@ Robot Robot::loadFromFile(id_t id, std::string filename)
 			// Use the translate method to extend the linear actuator. This is necessary because the extension can
 			// only be modified by the public method translate since it is a private attribute and can't be modified
 			// directly
-			dynamic_cast<LinearActuator*>(robot.getEnd())->translate
+			static_cast<LinearActuator*>(robot.getEnd())->translate
 			(
 				std::stod(linear_actuator_parameters[LINEAR_ACTUATOR_EXTENSION])
 			);
@@ -413,7 +413,7 @@ Robot Robot::loadFromFile(id_t id, std::string filename)
 			);
 
 			// Use the rotate method in order to chang ethe rotated angle private attribute by the motor
-			dynamic_cast<Motor*>(robot.getEnd())->rotate(std::stod(motor_parameters[MOTOR_ROTATED_ANGLE]));
+			static_cast<Motor*>(robot.getEnd())->rotate(std::stod(motor_parameters[MOTOR_ROTATED_ANGLE]));
 		}
 	}
 	
