@@ -374,6 +374,8 @@ Coordinate Robot::getCentreOfMass() const
 	{
 		centreOfMass.x += currentComponent->getCentreOfMass().x * currentComponent->mass;
 		centreOfMass.y += currentComponent->getCentreOfMass().y * currentComponent->mass;
+
+		currentComponent = currentComponent->front;
 	}
 	
 	if (this->mass != 0)

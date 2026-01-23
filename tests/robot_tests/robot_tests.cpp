@@ -292,7 +292,31 @@ int main()
             );
         }
     }
-    // TODO: Test centre of mass calculations
-    // TODO: Test inverse kinematics
 
+    std::cout << "\nTesting the Centre of Mass\n";
+    {
+        // Aim to test centre of mass with one component
+        // This corresponds to test 23 from my design section
+        Robot robot(0, "Robot");
+        robot.attachToEnd(new LinearActuator(0, "Linear Actuator", Coordinate(0, 0), M_PI_2, 10, 10, 10, 5));
+        test("Caclulate Centre of Mass with 1 Component", isCloseEnough(robot.getCentreOfMass(), Coordinate(0, 0)));
+        static_cast<LinearActuator*>(robot.getEnd())->translate(5);
+        test
+        (
+            "Calculate Centre of Mass when Linear Actuator Moves", 
+            isCloseEnough(robot.getCentreOfMass(), Coordinate(0, 2.5))
+        );
+
+        // Aim to test centre of mass with 3 components
+        // This corresponds to test 24 from my design section
+        robot.attachToEnd(new Segment(1, "Segment 1", Coordinate(0, 15), M_PI_2, 20, 10, 5));
+        robot.attachToEnd(new Segment(2, "Segment 2", Coordinate(0, 25), M_PI_2, 30, 10, 5));
+        test
+        (
+            "Calculate Centre of Mass with 3 Components", 
+            isCloseEnough(robot.getCentreOfMass(), Coordinate(0, (215.0 / 12.0)))
+        );
+    }
+
+    // TODO: Test inverse kinematics
 }
