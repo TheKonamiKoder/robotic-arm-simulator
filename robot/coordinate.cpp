@@ -22,3 +22,8 @@ bool operator==(const Coordinate& lhs, const Coordinate& rhs)
 {
     return (lhs.x == rhs.x) && (lhs.y == rhs.y);
 }
+
+double distance(const Coordinate& a, const Coordinate& b)
+{
+    return sqrt((a.x - b.x) * (a.x - b.x) + (a.y - b.y) * (a.y - b.y));
+}

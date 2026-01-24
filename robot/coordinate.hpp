@@ -8,6 +8,9 @@ class Coordinate
         
         Coordinate() = default;
         Coordinate(double x, double y);
+
         void rotateAbout(const Coordinate& origin, double angle);
-        friend bool operator==(const Coordinate& lhs, const Coordinate& rhs);
 };
+
+bool operator==(const Coordinate& lhs, const Coordinate& rhs);
+double distance(const Coordinate& a, const Coordinate& b);

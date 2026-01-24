@@ -152,6 +152,129 @@ void Robot::remove(RobotComponent* robotComponent)
 	}
 }
 
+void Robot::moveTo(const Coordinate& target, int maximum_cycles)
+{
+	for (int cycle = 0; cycle < maximum_cycles; cycle++)
+	{
+		RobotComponent* currentComponent = this->base;
+
+		while (currentComponent != nullptr)
+		{
+			Coordinate E = this->getEndEffectorPosition();
+
+			if (auto linear_actuator = dynamic_cast<LinearActuator*>(currentComponent))
+			{
+				// v is a direction vector where |v| = 1
+				// This is proven as cos^2 x + sin^2 x = 1
+				double v_x = cos(linear_actuator->angle);
+				double v_y = sin(linear_actuator->angle);
+
+				// Want to find lambda, which is the distance we need to translate linear actuator
+				// Below is the derivation for how lambda is calculated:
+
+				// P (optimal point) = E + lambda v
+				// PT = T - P = T - E - lambda v
+				// PT . v = 0
+				// T . v - E . v - lambda v . v = 0
+				// lambda = (T . v - E . v) / (v . v) 
+				//        = (T . v - E . v) / |v|^2 
+				//        = T . v - E . v
+				//		  = (T_x - E_x) * v_x + (T_y - E_y) * v_y
+
+				double lambda = ((target.x - E.x) * v_x  + (target.y - E.y) * v_y);
+
+				linear_actuator->translate(lambda);
+			} 
+			else if (auto motor = dynamic_cast<Motor*>(currentComponent))
+			{
+				// MT is the vector which points from the motor to the target position
+				double MT_x = target.x - motor->position.x;
+				double MT_y = target.y - motor->position.y;
+
+				double MT_maginitude = distance(motor->position, target);
+
+				// ME is the vector which points from the motor to the end effector
+				double ME_x = E.x - motor->position.x;
+				double ME_y = E.y - motor->position.y;
+
+				double ME_magnitude = distance(motor->position, target);
+
+				// We want to find the optimal angle theta, which is the distance we need to rotate the end motor
+				// Below is the derivation for how theta is calculated:
+
+				// MT . ME = |MT| |ME| cos(theta)
+				// cos(theta) = (MT . ME) / (|MT| |ME|)
+				// theta = arccos((MT . ME) / (|MT| |ME|))
+				
+				double theta = acos((MT_x * ME_x + MT_y * ME_y) / (MT_maginitude * ME_magnitude));
+
+				// Check whether theta is a clockwise or anticlockwise rotation
+				Coordinate anticlockwise_rotation_test = E; 
+				anticlockwise_rotation_test.rotateAbout(motor->position, theta);
+
+				Coordinate clockwise_rotation_test = E; 
+				clockwise_rotation_test.rotateAbout(motor->position, -theta);
+
+				bool rotate_anticlockwise = distance(anticlockwise_rotation_test, target) < 
+											distance(clockwise_rotation_test, target);
+
+				// Translation will be different for motors with full rotation and motors which can't fully rotate
+				if (motor->canRotateFully())
+				{
+					if (rotate_anticlockwise)
+					{
+						motor->rotate(theta);
+					}
+					else
+					{
+						motor->rotate(-theta);
+					}
+				}
+				else
+				{
+					// Ensure that theta is within bounds for motor, and that motor can rotate safely
+					if (rotate_anticlockwise && ((motor->maximumRotation - motor->getRotatedAngle()) >= theta))
+					{
+						motor->rotate(theta);
+					}
+					else if (!rotate_anticlockwise && (motor->getRotatedAngle() >= theta))
+					{
+						motor->rotate(-theta);
+					}
+					else
+					{
+						// If motor cannot rotate fully and theta is not in either direction, we need to check whether
+						// end effector will be closer if motor rotated fully clockwise or fully anticlockwise
+						Coordinate max_anticlockwise_rotation_test = E;
+						max_anticlockwise_rotation_test.rotateAbout
+						(
+							motor->position, motor->maximumRotation - motor->getRotatedAngle()
+						);
+
+						Coordinate max_clockwise_rotation_test = E;
+						max_clockwise_rotation_test.rotateAbout(motor->position, -motor->getRotatedAngle());
+
+						if 
+						(
+							distance(max_anticlockwise_rotation_test, target) < 
+							distance(max_clockwise_rotation_test, target)
+						)
+						{
+							motor->rotate(motor->maximumRotation - motor->getRotatedAngle());
+						}
+						else
+						{
+							motor->rotate(-motor->getRotatedAngle());
+						}
+					}
+				}
+			}
+			
+			currentComponent = currentComponent->front;
+		}
+	}
+}
+
 // This method will store the data in the file
 //
 // The format of the file is like so:
@@ -385,6 +508,27 @@ Coordinate Robot::getCentreOfMass() const
 	}
 
 	return centreOfMass;
+}
+
+Coordinate Robot::getEndEffectorPosition() const
+{
+	Coordinate end_effector_position(this->end->position.x, this->end->position.y);
+	if (auto segment = dynamic_cast<Segment*>(this->end))
+	{
+		end_effector_position.x +=  segment->height / 2;
+		end_effector_position.rotateAbout(segment->position, segment->angle);
+	}
+	else if (auto linear_actuator = dynamic_cast<LinearActuator*>(this->end))
+	{
+		end_effector_position.x += linear_actuator->height / 2 + linear_actuator->getExtension();
+		end_effector_position.rotateAbout(linear_actuator->position, linear_actuator->angle);
+	}
+	else if (auto motor = dynamic_cast<Motor*>(this->end))
+	{
+		end_effector_position.x += motor->radius;
+		end_effector_position.rotateAbout(motor->position, motor->angle + motor->getRotatedAngle());
+	}
+	
 }
 
 id_t Robot::getId() const

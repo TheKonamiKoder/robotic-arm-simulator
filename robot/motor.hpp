@@ -27,5 +27,6 @@ class Motor: public RobotComponent
 			double radius			
 		);
 		void rotate(double angularDisplacement);
+		bool canRotateFully() const;
 		double getRotatedAngle() const;
 };

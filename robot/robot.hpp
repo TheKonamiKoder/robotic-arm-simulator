@@ -28,9 +28,11 @@ public:
 	void attachTo(RobotComponent* to, RobotComponent* next);
 	void attachBaseTo(RobotComponent* robotComponent);
 	void remove(RobotComponent* robotComponent);
+	void moveTo(const Coordinate& target, int maximum_cylces = 10);
 	void saveToFile(const std::string& filename) const;
 	void loadFromFile(const std::string& filename);
 	Coordinate getCentreOfMass() const;
+	Coordinate getEndEffectorPosition() const;
 	id_t getId() const;
 	double getMass() const;
 	RobotComponent* getComponentFromId(id_t id);

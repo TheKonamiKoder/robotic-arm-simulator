@@ -32,7 +32,7 @@ void Motor::rotate(double angularDisplacement)
 
 	// If the maximum rotation is not 2 pi (which means that the angle cannot rotate fully) we first have to check that 
 	// the maximum and minimum rotations are not surpassed
-	if ((2 * M_PI - this->maximumRotation) > 0.1)	// Allow a small error of 0.1, due to floating point inaccuracies 
+	if (!this->canRotateFully())					// Allow a small error of 0.1, due to floating point inaccuracies 
 	{
 		if (newAngle > this->maximumRotation)
 		{
@@ -71,6 +71,12 @@ void Motor::rotate(double angularDisplacement)
 		currentComponent->angle += (this->rotatedAngle - pastAngle);
 		currentComponent = currentComponent->front;
 	}
+}
+
+bool Motor::canRotateFully() const
+{
+	// Allow a small error of 0.1, due to floating point inaccuracies
+	return (2 * M_PI - this->maximumRotation) < 0.1;
 }
 
 double Motor::getRotatedAngle() const
