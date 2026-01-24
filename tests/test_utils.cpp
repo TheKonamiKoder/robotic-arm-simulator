@@ -3,46 +3,26 @@
 #include <cmath>
 #include <iostream>
 
-#define EPSILON 0.1 // This is a small error value that is allowed when checking floating point numbers
+#include "robot/coordinate.hpp"
 
-// This function is responsible for checking if 2 doubles are close together
-// This is needed because floating point arithmetic is not exact and has rounding errors
-// Therefore it is better to check if 2 doubles are close together rather than if they are exactly the same
-bool isCloseEnough(double a, double b)
+bool isCloseEnough(double a, double b, double epsilon)
 {
-    if (abs(a - b) < EPSILON)
-    {
-        return true;
-    }
-    else
-    {
-        return false;
-    }
+    return abs(a - b) < epsilon;
 }
 
-// This is overloading the function, and this is useful when comparing 2 coordinates
-// This is necessary to make the testing cleaner and reduce redundancy and make the code less tedious to write
-bool isCloseEnough(const Coordinate& a, const Coordinate& b)
+bool isCloseEnough(const Coordinate& a, const Coordinate& b, double epsilon)
 {
-    if ((abs(a.x - b.x) < EPSILON) && (abs(a.y - b.y) < EPSILON))
-    {
-        return true;
-    }
-    else
-    {
-        return false;
-    }
-    
+    return (abs(a.x - b.x) < epsilon) && (abs(a.y - b.y) < epsilon);
 }
 
 void test(const std::string& name, bool condition)
 {
     if (condition)
     {
-        std::cout << "TEST " << name << " PASSED.\n";
+        std::cout << "\033[32mTEST " << name << " PASSED\033[0m\n";
     }
     else
     {
-        std::cout << "TEST " << name << " FAILED.\n"; 
+        std::cout << "\033[31mTEST " << name << " FAILED\033[0m\n";
     }
 }
