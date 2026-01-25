@@ -80,7 +80,8 @@ void Robot::attachToEnd(RobotComponent* robotComponent)
 	else
 	{
 		// If the robot doesn't have a base, then the component is not the first component, so attach it to the end
-		this->end->front = robotComponent;
+		this->end->front = robotComponent;		// robotComponent is now in front of the end
+		robotComponent->back = this->end;		// The end is now behind robotComponent
 	}
 
 	// Regardless of what happens, the end component will be the new robot component
@@ -103,6 +104,8 @@ void Robot::attachTo(RobotComponent* a, RobotComponent* b)
 		// Inserts b in front of a
 		b->front = a->front;	// The component in front of a is now in front of b
 		a->front = b;			// The component in front of a is now b
+		b->front->back = b;		// b is now behind the component in front of it
+		b->back = a;			// a is now behind b
 	}
 }
 
@@ -111,7 +114,8 @@ void Robot::attachBaseTo(RobotComponent* robotComponent)
 	this->robotComponentsMap[robotComponent->getId()] = robotComponent;
 	this->mass += robotComponent->mass;
 
-	robotComponent->front = this->base;
+	this->base->back = robotComponent;		// robotComponent is now behind the base 
+	robotComponent->front = this->base;		// The base is now in front of robotComponent
 	this->base = robotComponent;
 }
 
@@ -125,24 +129,21 @@ void Robot::remove(RobotComponent* robotComponent)
 		if (this->base == robotComponent)
 		{
 			this->base = robotComponent->front;		// The new base is now the component in front of the old base
+			this->base->back = nullptr; 			// There is nothing behind the new base 
 		}
 		else
 		{
-			// If it isn't the base, we have to find which component points to it
-			RobotComponent* currentComponent = this->base;
-
-			while (currentComponent->front != robotComponent)
-			{
-				currentComponent = currentComponent->front;
-			}
-
 			// Check if component removed is at end to update the end pointer so it points to the new end of the robot
 			if (this->end == robotComponent)
 			{
-				this->end = currentComponent;
+				this->end = robotComponent->back;
+				this->end->front = nullptr;
 			}
-			
-			currentComponent->front = robotComponent->front;
+			else
+			{
+				robotComponent->back->front = robotComponent->front;
+				robotComponent->front->back = robotComponent->back;
+			}
 		}
 
 		this->mass -= robotComponent->mass;
@@ -156,7 +157,8 @@ void Robot::moveTo(const Coordinate& target, int maximum_cycles)
 {
 	for (int cycle = 0; cycle < maximum_cycles; cycle++)
 	{
-		RobotComponent* currentComponent = this->base;
+		// Loop from the end of the robot to the base
+		RobotComponent* currentComponent = this->end;
 
 		while (currentComponent != nullptr)
 		{
@@ -205,8 +207,14 @@ void Robot::moveTo(const Coordinate& target, int maximum_cycles)
 				// MT . ME = |MT| |ME| cos(theta)
 				// cos(theta) = (MT . ME) / (|MT| |ME|)
 				// theta = arccos((MT . ME) / (|MT| |ME|))
+
+				if ((MT_maginitude == 0) || (ME_magnitude == 0))
+				{
+					break;
+				}
 				
-				double theta = acos((MT_x * ME_x + MT_y * ME_y) / (MT_maginitude * ME_magnitude));
+				double cos_theta = (MT_x * ME_x + MT_y * ME_y) / (MT_maginitude * ME_magnitude);
+				double theta = acos(std::max(-1.0, std::min(1.0, cos_theta)));
 
 				// Check whether theta is a clockwise or anticlockwise rotation
 				Coordinate anticlockwise_rotation_test = E; 
@@ -270,7 +278,7 @@ void Robot::moveTo(const Coordinate& target, int maximum_cycles)
 				}
 			}
 			
-			currentComponent = currentComponent->front;
+			currentComponent = currentComponent->back;
 		}
 	}
 }
@@ -529,6 +537,7 @@ Coordinate Robot::getEndEffectorPosition() const
 		end_effector_position.rotateAbout(motor->position, motor->angle + motor->getRotatedAngle());
 	}
 	
+	return end_effector_position;
 }
 
 id_t Robot::getId() const
