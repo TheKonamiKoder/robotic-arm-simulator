@@ -3,3 +3,5 @@
 *.obj
 *.pdb
 vc140.pdb
+build/
+bin/
