@@ -27,9 +27,9 @@ int main()
         test
         (
             "Attaching Component to Empty Robot", 
-            (robot.getBase() == base)                               && 
-            (robot.getEnd() == base)                                &&
-            (robot.getComponentFromId(base->getId()) == base)       &&
+            (robot.getBase() == base)                                   && 
+            (robot.getEnd() == base)                                    &&
+            (robot.getComponentFromId(base->getId()) == base)           &&
             (isCloseEnough(robot.getMass(), 5))
         );
 
@@ -42,6 +42,7 @@ int main()
             "Attaching Component to End of Robot", 
             (robot.getBase() == base)                                   && 
             (robot.getEnd() == end)                                     &&
+            (end->back == base)                                         &&
             (robot.getComponentFromId(end->getId()) == end)             &&
             (isCloseEnough(robot.getMass(), 15)) 
         );
@@ -54,6 +55,8 @@ int main()
             "Attaching Component in the Middle", 
             (robot.getBase()->front == middle)                          && 
             (robot.getEnd() == middle->front)                           &&
+            (middle->back == base)                                      &&
+            (end->back == middle)                                       &&
             (robot.getComponentFromId(middle->getId()) == middle)       &&
             (isCloseEnough(robot.getMass(), 30))
         );
@@ -66,6 +69,7 @@ int main()
             "Attaching Component in the End Explicitly", 
             (robot.getEnd() == new_end)                                 && 
             (end->front == new_end)                                     &&
+            (new_end->back == end)                                      &&
             (robot.getComponentFromId(new_end->getId()) == new_end)     &&
             (isCloseEnough(robot.getMass(), 50))
         );
@@ -78,6 +82,7 @@ int main()
             "Attaching Base to Component", 
             (robot.getBase() == new_base)                               && 
             (new_base->front == base)                                   &&
+            (base->back == new_base)                                    &&
             (robot.getComponentFromId(new_base->getId()) == new_base)   &&
             (isCloseEnough(robot.getMass(), 75))
         );
@@ -115,6 +120,7 @@ int main()
         (
             "Removing Component from the Middle", 
             (second->front == fourth)                                   &&
+            (fourth->back == second)                                    &&
             (robot.getComponentFromId(third->getId()) == nullptr)       &&
             (isCloseEnough(robot.getMass(), 35))                       
         );
@@ -125,6 +131,7 @@ int main()
         (
             "Removing Component from the Base", 
             (robot.getBase() == second)                                 &&
+            (second->back == nullptr)                                   &&
             (robot.getComponentFromId(first->getId()) == nullptr)       &&
             (isCloseEnough(robot.getMass(), 30))
         );
@@ -318,5 +325,104 @@ int main()
         );
     }
 
-    // TODO: Test inverse kinematics
+    std::cout << "\nTesting Inverse Kinematics\n";
+    {
+        // Test inverse kinematics algorithm with only 1 linear actuator
+        // This corresponds to test 19 in my design section
+        {
+            Robot robot(0, "Robot");
+            robot.attachToEnd(new LinearActuator(0, "Linear Actuator", Coordinate(0, 0), M_PI_2, 5, 10, 10, 5));
+            robot.moveTo(Coordinate(0, 10));
+            test
+            (
+                "Inverse Kinematics with 1 Linear Actuator", 
+                isCloseEnough(robot.getEndEffectorPosition(), Coordinate(0, 10), 1)
+            );
+        }
+
+        // Test IK algorithm with 2 linear actuators
+        // This corresponds to test 21 in my design section
+        {
+            Robot robot(0, "Robot");
+            robot.attachToEnd(new LinearActuator(0, "Linear Actuator 1", Coordinate(0, 0), M_PI_2, 5, 10, 10, 5));
+            robot.attachToEnd(new LinearActuator(1, "Linear Actuator 2", Coordinate(5, 5), 0, 5, 10, 10, 5));
+            robot.moveTo(Coordinate(15, 10));
+            test
+            (
+                "Inverse Kinematics with 2 Linear Actuators", 
+                isCloseEnough(robot.getEndEffectorPosition(), Coordinate(15, 10), 1)
+            );
+        }
+
+        // Test inverse kinematics algorithm with only 1 motor
+        // This corresponds to test 18 in my design section
+        {
+            Robot robot(0, "Robot");
+            robot.attachToEnd(new Motor(0, "Motor", Coordinate(0, 0), 0, 5, 2 * M_PI, 5));
+            robot.moveTo(Coordinate(0, 5));
+            test
+            (
+                "Inverse Kinematics with 1 Motor", 
+                isCloseEnough(robot.getEndEffectorPosition(), Coordinate(0, 5), 1)
+            );
+        }
+
+        // Test inverse kinematics algorithm with 2 motors
+        // This corresponds to test 20 in my design section
+        {
+            Robot robot(0, "Robot");
+            robot.attachToEnd(new Motor(0, "Motor 1", Coordinate(0, 0), 0, 5, 2 * M_PI, 1));
+            robot.attachToEnd(new Segment(1, "Segment 1", Coordinate(5, 0), 0, 5, 8, 2));
+            robot.attachToEnd(new Motor(2, "Motor 2", Coordinate(10, 0), 0, 5, 2 * M_PI, 1));
+            robot.attachToEnd(new Segment(3, "Segment 2", Coordinate(15, 0), 0, 5, 8, 2));
+            robot.moveTo(Coordinate(19 / 2, 19 * sqrt(3) / 2));
+            test
+            (
+                "Inverse Kinematics with 2 Motors", 
+                isCloseEnough(robot.getEndEffectorPosition(), Coordinate(19 / 2, 19 * sqrt(3) / 2), 1)
+            ); 
+        }
+
+        // Test inverse kinematics algorithm with motors that cannot rotate fully
+        {
+            Robot robot(0, "Robot");
+            robot.attachToEnd(new Motor(0, "Motor", Coordinate(0, 0), 0, 5, M_PI_2, 5));
+            
+            robot.moveTo(Coordinate(5 / sqrt(2), 5 / sqrt(2)));
+            test
+            (
+                "Inverse Kinematics with Bounded Motor - Within Bounds",
+                isCloseEnough(static_cast<Motor*>(robot.getBase())->getRotatedAngle(), M_PI_4)
+            );
+
+            robot.moveTo(Coordinate(-5 / sqrt(2), 5 / sqrt(2)));
+            test
+            (
+                "Inverse Kinematics with Bounded Motor - Beyond Maximum Rotation",
+                isCloseEnough(static_cast<Motor*>(robot.getBase())->getRotatedAngle(), M_PI_2)
+            );
+
+            robot.moveTo(Coordinate(5 / sqrt(2), -5 / sqrt(2)));
+            test
+            (
+                "Inverse Kinematics with Bounded Motor - Below 0",
+                isCloseEnough(static_cast<Motor*>(robot.getBase())->getRotatedAngle(), 0)
+            );
+        }
+
+        // Test inverse kinematics algorithm with both motor and linear actuator
+        // This corresponds to test 22 in my design section
+        {
+            Robot robot(0, "Robot");
+            robot.attachToEnd(new Motor(0, "Motor", Coordinate(0, 0), 0, 5, 2 * M_PI, 1));
+            robot.attachToEnd(new LinearActuator(1, "Linear Actuator", Coordinate(5, 0), 0, 5, 4, 8, 2));
+
+            robot.moveTo(Coordinate(0, 12));
+            test
+            (
+                "Inverse Kinematics with Motor and Linear Actuator", 
+                isCloseEnough(robot.getEndEffectorPosition(), Coordinate(0, 12), 1)
+            ); 
+        }
+    }
 }
