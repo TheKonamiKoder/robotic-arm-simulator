@@ -18,11 +18,13 @@ class RobotComponent
 		double angle;
 		double mass;
 		
-		// Front pointer to create a linked list
-		RobotComponent* front = nullptr;				
+		// Front and back pointers to create a linked list
+		RobotComponent* front = nullptr;
+		RobotComponent* back = nullptr;				
 	
 		RobotComponent() = default;
 		RobotComponent(id_t id, std::string name, Coordinate position, double angle, double mass);
+
 		virtual Coordinate getCentreOfMass() const;
 		id_t getId() const;
 		
