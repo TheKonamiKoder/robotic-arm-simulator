@@ -3,7 +3,7 @@
 #include <cmath>
 #include <iostream>
 
-#include "robot/coordinate.hpp"
+#include "coordinate.hpp"
 
 bool isCloseEnough(double a, double b, double epsilon)
 {

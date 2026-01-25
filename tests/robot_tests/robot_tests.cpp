@@ -4,13 +4,13 @@
 #include <fstream>
 #include <iostream>
 
-#include "../test_utils.hpp"
-#include "robot/coordinate.hpp"
-#include "robot/segment.hpp"
-#include "robot/linear_actuator.hpp"
-#include "robot/motor.hpp"
-#include "robot/linear_actuator.hpp"
-#include "robot/robot.hpp"
+#include "test_utils.hpp"
+#include "coordinate.hpp"
+#include "segment.hpp"
+#include "linear_actuator.hpp"
+#include "motor.hpp"
+#include "linear_actuator.hpp"
+#include "robot.hpp"
 
 int main()
 {
@@ -140,7 +140,7 @@ int main()
     std::cout << "\nTesting save to file function of the robot\n";
     {
 
-        std::string filename = "robot_test_files/save_file.rbt";
+        std::string filename = std::string(TEST_DATA_DIR) + "/save_file.rbt";
         Robot robot = Robot(0, "Robot");
         
         // Test Robot can save file when there are no components
@@ -244,7 +244,7 @@ int main()
         // This corresponds to test 5 from the design section
         {
             Robot robot(0);
-            robot.loadFromFile("robot_test_files/robot_with_0_components.rbt");
+            robot.loadFromFile(std::string(TEST_DATA_DIR) + "/robot_with_0_components.rbt");
 
             test("Loading from File with 0 Components", robot.name == "Robot");
         }
@@ -253,7 +253,7 @@ int main()
         // This corresponds to test 6 from the design section
         {
             Robot robot(0);
-            robot.loadFromFile("robot_test_files/robot_with_1_component.rbt");
+            robot.loadFromFile(std::string(TEST_DATA_DIR) + "/robot_with_1_component.rbt");
 
             test
             (
@@ -267,7 +267,7 @@ int main()
         // This corresponds to test 7 from the design section
         {
             Robot robot(0);
-            robot.loadFromFile("robot_test_files/robot_with_3_components.rbt");
+            robot.loadFromFile(std::string(TEST_DATA_DIR) + "/robot_with_3_components.rbt");
 
             test
             (
@@ -288,7 +288,7 @@ int main()
         // This corresponds to test 8 from the design section
         {
             Robot robot(0);
-            robot.loadFromFile("robot_test_files/robot_with_5_components.rbt");
+            robot.loadFromFile(std::string(TEST_DATA_DIR) + "/robot_with_5_components.rbt");
 
             test
             (
