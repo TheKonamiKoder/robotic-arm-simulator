@@ -10,3 +10,9 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/build)
 
 add_subdirectory(robot)
 add_subdirectory(tests)
+
+add_custom_target(test
+    COMMAND linear_actuator_tests
+    COMMAND motor_tests
+    COMMAND robot_tests
+)
