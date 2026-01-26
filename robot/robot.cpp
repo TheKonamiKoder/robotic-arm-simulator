@@ -41,9 +41,6 @@ Robot::Robot(id_t id) : id(id) {}
 
 Robot::Robot(id_t id, std::string name) : id(id), name(name) {}
 
-// Since pointers have been used, the destructor needs to be manually defined and all RobotComponents need to be
-// removed from the heap manually
-// If this is not done, this can cause memory leak issues
 Robot::~Robot() 
 {
 	// Following code loops through the map and deletes all of the robot components
@@ -53,10 +50,6 @@ Robot::~Robot()
 	}
 }
 
-// This method will be used to generate an id for the robot components
-// It will generate a unique id that is not already part of the robot
-// This is important as each component will need to have its own id and this id needs to be unique for each component
-// in the robot
 id_t Robot::generateId() const
 {
 	static std::random_device random_device;	// Static variables used so that it does not need to be re-declared
@@ -88,7 +81,6 @@ void Robot::attachToEnd(RobotComponent* robotComponent)
 	this->end = robotComponent;
 }
 
-// Attaches the second component to the first component
 void Robot::attachTo(RobotComponent* a, RobotComponent* b)
 {
 	// Check if a is end as slightly different logic will need to be implemented
@@ -119,7 +111,6 @@ void Robot::attachBaseTo(RobotComponent* robotComponent)
 	this->base = robotComponent;
 }
 
-// Removes the robot component from the robot
 void Robot::remove(RobotComponent* robotComponent)
 {
 	// First we need to check that the robot component is actually in the list
@@ -283,18 +274,7 @@ void Robot::moveTo(const Coordinate& target, int maximum_cycles)
 	}
 }
 
-// This method will store the data in the file
-//
-// The format of the file is like so:
-// First line: Robot Name (the id is not stored as the id for the robot is only important when there are multiple robots
-// which will happen in Worlds)
-// Each of the next lines will store the components of the robot in order of how they are connected to each other
-// Format of each line differs depending on the component
-// For a Segment, the line format is: ID | Name | Position x | Position y | Angle | Mass | SEGMENT | Height | Width
-// For a LinearActuator, hte line format is: ID | Name | Position x | Position y | Angle | Mass | LINEAR ACTUATOR |
-// Extension | Maximum Extension | Height | Width
-// For a Motor, the line format is: ID | Name | Position x | Position y | Angle | Mass | MOTOR | Rotated Angle | Maximum
-// Rotation | Radius
+
 void Robot::saveToFile(const std::string& filename) const
 {
 	std::ofstream file(filename);
@@ -348,16 +328,9 @@ void Robot::saveToFile(const std::string& filename) const
 	file.close();
 }
 
-// This static method will return a robot after reading it from a file
-// It will iterate through all the robot components in the file (line by line) and then attach these robot components
-// to the robot
 void Robot::loadFromFile(const std::string& filename)
 {
-	// Remove any components that have already been added to the robot
-	while (this->end != nullptr)
-	{
-		this->remove(this->end);
-	}
+	this->reset();	// Reset the robot to its original settings
 	
 	std::ifstream file(filename);
 	
@@ -493,8 +466,22 @@ void Robot::loadFromFile(const std::string& filename)
 	file.close();
 }
 
-// This method returns the position of the centre of mass of the robot
-// If the robot is "empty", then the function will return (0, 0)
+void Robot::reset()
+{
+	this->mass = 0;
+
+	for (auto pair : this->robotComponentsMap)
+	{
+		delete pair.second;
+	}
+	this->robotComponentsMap.clear();
+	
+	this->base = nullptr;
+	this->end = nullptr;
+
+	this->name.clear();
+}
+
 Coordinate Robot::getCentreOfMass() const
 {
 	Coordinate centreOfMass(0, 0);
