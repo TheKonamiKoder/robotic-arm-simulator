@@ -56,7 +56,15 @@ id_t Robot::generateId() const
 	static std::mt19937 generator(random_device());
 	static std::uniform_int_distribution<id_t> distribution;
 
-	return distribution(generator);
+	id_t id = distribution(generator);
+
+	while (this->robotComponentsMap.find(id) != this->robotComponentsMap.end())
+	{
+		id = distribution(generator);
+	}
+	
+
+	return id;
 }
 
 void Robot::attachToEnd(RobotComponent* robotComponent)
