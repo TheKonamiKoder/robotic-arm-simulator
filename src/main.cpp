@@ -1,4 +1,5 @@
 #include <array>
+#include <iostream>
 
 #include <SFML/Graphics.hpp>
 #include <imgui-SFML.h>
@@ -9,13 +10,15 @@
 #include "motor.hpp"
 #include "robot.hpp"
 
-struct UIFlags
+struct UIState
 {
     bool showRobotInformation = false;
 
-    static UIFlags& instance()
+    double zoom = 1;
+
+    static UIState& instance()
     {
-        static UIFlags inst;
+        static UIState inst;
         return inst;
     }
 };
@@ -66,84 +69,117 @@ void drawSegment(const Segment& segment, sf::RenderWindow& window)
 
 void drawLinearActuator(const LinearActuator& linearActuator, sf::RenderWindow& window) 
 {
-    double pistonHeight = linearActuator.height / 10;
+    double pistonHeight = linearActuator.height / 20;
     double pistonWidth = linearActuator.width / 5;
 
-    std::array<Coordinate, 12> corners;
+    std::array<Coordinate, 4> base;
+    std::array<Coordinate, 4> shaft;
+    std::array<Coordinate, 4> head;
 
-    corners[0] = Coordinate
+    double headHeight = linearActuator.height / 20;
+    double shaftWidth = linearActuator.width / 10;
+
+    base[0] = Coordinate
+    (
+        linearActuator.position.x + (linearActuator.height / 2), 
+        linearActuator.position.y + (linearActuator.width / 2)
+    );
+    base[1] = Coordinate
+    (
+        linearActuator.position.x - (linearActuator.height / 2),
+        linearActuator.position.y + (linearActuator.width / 2)
+    );
+    base[2] = Coordinate
+    (
+        linearActuator.position.x - (linearActuator.height / 2),
+        linearActuator.position.y - (linearActuator.width / 2)
+    );
+    base[3] = Coordinate
+    (
+        linearActuator.position.x + (linearActuator.height / 2), 
+        linearActuator.position.y - (linearActuator.width / 2)
+    );
+
+    shaft[0] = Coordinate
+    (
+        linearActuator.position.x + (linearActuator.height / 2) + linearActuator.getExtension() - headHeight, 
+        linearActuator.position.y + shaftWidth
+    );
+    shaft[1] = Coordinate
+    (
+        linearActuator.position.x + (linearActuator.height / 2),
+        linearActuator.position.y + shaftWidth
+    );
+    shaft[2] = Coordinate
+    (
+        linearActuator.position.x + (linearActuator.height / 2),
+        linearActuator.position.y - shaftWidth
+    );
+    shaft[3] = Coordinate
+    (
+        linearActuator.position.x + (linearActuator.height / 2) + linearActuator.getExtension() - headHeight, 
+        linearActuator.position.y - shaftWidth
+    );
+    
+    head[0] = Coordinate
     (
         linearActuator.position.x + (linearActuator.height / 2) + linearActuator.getExtension(), 
         linearActuator.position.y + (linearActuator.width / 2)
     );
-    corners[1] = Coordinate
+    head[1] = Coordinate
     (
-        linearActuator.position.x + (linearActuator.height / 2) + linearActuator.getExtension() - pistonHeight, 
+        linearActuator.position.x + (linearActuator.height / 2) + linearActuator.getExtension() - headHeight,
         linearActuator.position.y + (linearActuator.width / 2)
     );
-    corners[2] = Coordinate
+    head[2] = Coordinate
     (
-        linearActuator.position.x + (linearActuator.height / 2) + linearActuator.getExtension() - pistonHeight, 
-        linearActuator.position.y + (linearActuator.width / 2) - pistonWidth
-    );
-    corners[3] = Coordinate
-    (
-        linearActuator.position.x + (linearActuator.height / 2), 
-        linearActuator.position.y + (linearActuator.width / 2) - pistonWidth
-    );
-    corners[4] = Coordinate
-    (
-        linearActuator.position.x + (linearActuator.height / 2), 
-        linearActuator.position.y + (linearActuator.width / 2)
-    );
-    corners[5] = Coordinate
-    (
-        linearActuator.position.x - (linearActuator.height / 2), 
-        linearActuator.position.y + (linearActuator.width / 2)
-    );
-    corners[6] = Coordinate
-    (
-        linearActuator.position.x - (linearActuator.height / 2), 
+        linearActuator.position.x + (linearActuator.height / 2) + linearActuator.getExtension() - headHeight,
         linearActuator.position.y - (linearActuator.width / 2)
     );
-    corners[7] = Coordinate
-    (
-        linearActuator.position.x + (linearActuator.height / 2), 
-        linearActuator.position.y - (linearActuator.width / 2)
-    );
-    corners[8] = Coordinate
-    (
-        linearActuator.position.x + (linearActuator.height / 2), 
-        linearActuator.position.y - (linearActuator.width / 2) + pistonWidth
-    );
-    corners[9] = Coordinate
-    (
-        linearActuator.position.x + (linearActuator.height / 2) + linearActuator.getExtension() - pistonHeight, 
-        linearActuator.position.y - (linearActuator.width / 2) + pistonWidth
-    );
-    corners[10] = Coordinate
-    (
-        linearActuator.position.x + (linearActuator.height / 2) + linearActuator.getExtension() - pistonHeight, 
-        linearActuator.position.y - (linearActuator.width / 2)
-    );
-    corners[11] = Coordinate
+    head[3] = Coordinate
     (
         linearActuator.position.x + (linearActuator.height / 2) + linearActuator.getExtension(), 
         linearActuator.position.y - (linearActuator.width / 2)
     );
 
-    sf::ConvexShape convex;
-    convex.setPointCount(12);
-    convex.setFillColor(sf::Color::Black);
+    // First draw shaft
+    sf::ConvexShape shaftConvex;
+    shaftConvex.setPointCount(4);
+    shaftConvex.setFillColor(sf::Color::Black);
 
-    // Loop through and rotate all the corners so they are in their actual positions
-    for (int i = 0; i < 12; i++)
+    for (int i = 0; i < 4; i++)
     {
-        corners[i].rotateAbout(linearActuator.position, linearActuator.angle);
-        convex.setPoint(i, coordinateToSFMLPosition(corners[i]));
+        shaft[i].rotateAbout(linearActuator.position, linearActuator.angle);
+        shaftConvex.setPoint(i, coordinateToSFMLPosition(shaft[i]));
     }
 
-    window.draw(convex);
+    window.draw(shaftConvex);
+    
+    // Next draw Head
+    sf::ConvexShape headConvex;
+    headConvex.setPointCount(4);
+    headConvex.setFillColor(sf::Color::Black);
+
+    for (int i = 0; i < 4; i++)
+    {
+        head[i].rotateAbout(linearActuator.position, linearActuator.angle);
+        headConvex.setPoint(i, coordinateToSFMLPosition(head[i]));
+    }
+
+    window.draw(headConvex);
+
+    // Next draw base
+    sf::ConvexShape baseConvex;
+    baseConvex.setPointCount(4);
+    baseConvex.setFillColor(sf::Color::Black);
+
+    for (int i = 0; i < 4; i++)
+    {
+        base[i].rotateAbout(linearActuator.position, linearActuator.angle);
+        baseConvex.setPoint(i, coordinateToSFMLPosition(base[i]));
+    }
+
+    window.draw(baseConvex);
 }
 
 void drawMotor(const Motor& motor, sf::RenderWindow& window) 
@@ -194,7 +230,7 @@ void drawMenu(Robot& robot)
             if (ImGui::MenuItem("New")) 
             {
                 robot.reset();
-                UIFlags::instance().showRobotInformation = true;
+                UIState::instance().showRobotInformation = true;
             }
             
             if (ImGui::MenuItem("Open"))
@@ -214,7 +250,7 @@ void drawMenu(Robot& robot)
         {
             if (ImGui::MenuItem("Robot Information"))
             {
-                UIFlags::instance().showRobotInformation = true;
+                UIState::instance().showRobotInformation = true;
             }
             ImGui::EndMenu();
         }
@@ -228,7 +264,7 @@ void drawMenu(Robot& robot)
 
     if (saveRobotFilePopup)
     {
-        ImGui::OpenPopup("Save Robot File Popup");
+        ImGui::OpenPopup("Save Robot File");
     }
 }
 
@@ -301,7 +337,7 @@ void showRobotInformation(Robot& robot)
     static char robotNameBuffer[128];
     std::strncpy(robotNameBuffer, robot.name.c_str(), sizeof(robotNameBuffer));
 
-    ImGui::Begin("Robot Information", &UIFlags::instance().showRobotInformation);
+    ImGui::Begin("Robot Information", &UIState::instance().showRobotInformation);
         ImGui::Text("Robot Name:");
         ImGui::SameLine();
         if (ImGui::InputText("##RobotNameTextInput", robotNameBuffer, sizeof(robotNameBuffer)))
@@ -367,6 +403,46 @@ int main()
                 // Update the view to the new size of the window
                 robot_view.setSize(sf::Vector2f(resized->size));
             }
+
+            if (const auto* mouseWheelScrolled = event->getIf<sf::Event::MouseWheelScrolled>())
+            {
+                UIState::instance().zoom += -mouseWheelScrolled->delta * 0.01;
+
+                // Clamp zoom to 0.1 and 10
+                if (UIState::instance().zoom < 0.1)
+                {
+                    UIState::instance().zoom = 0.1;
+                }
+                else if (UIState::instance().zoom > 10)
+                {
+                    UIState::instance().zoom = 10;
+                }
+                else
+                {
+                    robot_view.zoom(1 - mouseWheelScrolled->delta * 0.1);
+                }
+            }
+
+            if (const auto* keyPressed = event->getIf<sf::Event::KeyPressed>())
+            {
+                if (!io.WantCaptureKeyboard)
+                {
+                    if (keyPressed->scancode == sf::Keyboard::Scancode::S)
+                    {
+                        std::cout << "Add segment\n";
+                    }
+                    
+                    if (keyPressed->scancode == sf::Keyboard::Scancode::L)
+                    {
+                        std::cout << "Add linear actuator\n";
+                    }
+
+                    if (keyPressed->scancode == sf::Keyboard::Scancode::M)
+                    {
+                        std::cout << "Add motor\n";
+                    }
+                }
+            }
         }
 
         ImGui::SFML::Update(window, clock.restart());
@@ -378,11 +454,13 @@ int main()
             robot_view.setCenter(coordinateToSFMLPosition(robot.getBase()->position));
         }
 
+        window.setView(robot_view);
+
         drawMenu(robot);
         showOpenRobotFilePopup(robot);
         showSaveRobotFilePopup(robot);
         
-        if (UIFlags::instance().showRobotInformation)
+        if (UIState::instance().showRobotInformation)
         {
             showRobotInformation(robot);
         }
