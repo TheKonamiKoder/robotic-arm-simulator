@@ -1,4 +1,7 @@
+#define _USE_MATH_DEFINES
+
 #include <array>
+#include <cmath>
 #include <iostream>
 
 #include <SFML/Graphics.hpp>
@@ -15,6 +18,10 @@ struct UIState
     bool showRobotInformation = false;
 
     double zoom = 1;
+
+    double height = 100;
+    double width = 50;
+    double density = 0.001;
 
     static UIState& instance()
     {
@@ -366,6 +373,97 @@ void showRobotInformation(Robot& robot)
     ImGui::End();
 }
 
+void addSegment(Robot& robot)
+{
+    Coordinate position(0, 0);
+    
+    // Calculate position of robot
+    if (robot.getBase() != nullptr)
+    {
+        position.x = robot.getEndEffectorPosition().x + UIState::instance().height / 2;
+        position.y = robot.getEndEffectorPosition().y;
+
+        position.rotateAbout(robot.getEndEffectorPosition(), robot.getEnd()->angle);
+    }
+
+    double angle = 0;
+    if (robot.getBase() != nullptr)
+    {
+        angle = robot.getEnd()->angle;
+    }
+    
+    robot.attachToEnd
+    (
+        new Segment
+        (
+            robot.generateId(), 
+            "Segment", 
+            position, 
+            angle, 
+            UIState::instance().density * UIState::instance().height * UIState::instance().width, 
+            UIState::instance().height, 
+            UIState::instance().width
+        )
+    );
+}
+
+void addLinearActuator(Robot& robot)
+{
+    Coordinate position(0, 0);
+    
+    // Calculate position of robot
+    if (robot.getBase() != nullptr)
+    {
+        position.x = robot.getEndEffectorPosition().x + UIState::instance().height / 2;
+        position.y = robot.getEndEffectorPosition().y;
+
+        position.rotateAbout(robot.getEndEffectorPosition(), robot.getEnd()->angle);
+    }
+
+    robot.attachToEnd
+    (
+        new LinearActuator
+        (
+            robot.generateId(), 
+            "Linear Actuator", 
+            position, 
+            robot.getEnd()->angle, 
+            UIState::instance().density * UIState::instance().height * UIState::instance().width * 2,
+            UIState::instance().height, 
+            UIState::instance().height, 
+            UIState::instance().width
+        )
+    );
+}
+
+void addMotor(Robot& robot)
+{
+    Coordinate position(0, 0);
+    
+    // Calculate position of robot
+    if (robot.getBase() != nullptr)
+    {
+        position.x = robot.getEndEffectorPosition().x + UIState::instance().width / 2;
+        position.y = robot.getEndEffectorPosition().y;
+
+        position.rotateAbout(robot.getEndEffectorPosition(), robot.getEnd()->angle);
+    }
+
+    robot.attachToEnd
+    (
+        new Motor
+        (
+            robot.generateId(), 
+            "Linear Actuator", 
+            position, 
+            robot.getEnd()->angle, 
+            UIState::instance().density * M_PI * (UIState::instance().width / 2) * (UIState::instance().width / 2),
+            2 * M_PI,
+            UIState::instance().width / 2
+        )
+    );
+}
+
 int main()
 {
     Robot robot;
@@ -429,17 +527,17 @@ int main()
                 {
                     if (keyPressed->scancode == sf::Keyboard::Scancode::S)
                     {
-                        std::cout << "Add segment\n";
+                        addSegment(robot);
                     }
                     
                     if (keyPressed->scancode == sf::Keyboard::Scancode::L)
                     {
-                        std::cout << "Add linear actuator\n";
+                        addLinearActuator(robot);
                     }
 
                     if (keyPressed->scancode == sf::Keyboard::Scancode::M)
                     {
-                        std::cout << "Add motor\n";
+                        addMotor(robot);
                     }
                 }
             }
@@ -449,9 +547,9 @@ int main()
         
         window.clear(sf::Color::White);
 
-        if (robot.getBase() != nullptr)
+        if (robot.getEnd() != nullptr)
         {
-            robot_view.setCenter(coordinateToSFMLPosition(robot.getBase()->position));
+            robot_view.setCenter(coordinateToSFMLPosition(robot.getEnd()->position));
         }
 
         window.setView(robot_view);
