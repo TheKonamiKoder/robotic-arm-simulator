@@ -16,12 +16,16 @@
 struct UIState
 {
     bool showRobotInformation = false;
+    bool showRobotComponentInformation = false;
 
     double zoom = 1;
 
     double height = 100;
     double width = 50;
     double density = 0.001;
+
+    Robot robot;
+    RobotComponent* selectedComponent = nullptr;
 
     static UIState& instance()
     {
@@ -225,7 +229,7 @@ void drawRobot(const Robot& robot, sf::RenderWindow& window)
     
 }
 
-void drawMenu(Robot& robot)
+void drawMenu()
 {
     bool openRobotFilePopup = false;
     bool saveRobotFilePopup = false;
@@ -236,7 +240,9 @@ void drawMenu(Robot& robot)
         {
             if (ImGui::MenuItem("New")) 
             {
-                robot.reset();
+                UIState::instance().selectedComponent = nullptr;
+                UIState::instance().showRobotComponentInformation = false;
+                UIState::instance().robot.reset();
                 UIState::instance().showRobotInformation = true;
             }
             
@@ -275,7 +281,7 @@ void drawMenu(Robot& robot)
     }
 }
 
-void showOpenRobotFilePopup(Robot& robot)
+void showOpenRobotFilePopup()
 {
     static char filenameBuffer[256] = "";
 
@@ -291,7 +297,7 @@ void showOpenRobotFilePopup(Robot& robot)
         {
             std::string filename = filenameBuffer;
 
-            robot.loadFromFile(filename);
+            UIState::instance().robot.loadFromFile(filename);
 
             ImGui::CloseCurrentPopup();
         }
@@ -307,7 +313,7 @@ void showOpenRobotFilePopup(Robot& robot)
     }
 }
 
-void showSaveRobotFilePopup(Robot& robot)
+void showSaveRobotFilePopup()
 {
     static char filenameBuffer[256] = "";
 
@@ -323,7 +329,7 @@ void showSaveRobotFilePopup(Robot& robot)
         {
             std::string filename = filenameBuffer;
 
-            robot.saveToFile(filename);
+            UIState::instance().robot.saveToFile(filename);
 
             ImGui::CloseCurrentPopup();
         }
@@ -339,28 +345,28 @@ void showSaveRobotFilePopup(Robot& robot)
     }
 }
 
-void showRobotInformation(Robot& robot)
+void showRobotInformation()
 {
     static char robotNameBuffer[128];
-    std::strncpy(robotNameBuffer, robot.name.c_str(), sizeof(robotNameBuffer));
+    std::strncpy(robotNameBuffer, UIState::instance().robot.name.c_str(), sizeof(robotNameBuffer));
 
     ImGui::Begin("Robot Information", &UIState::instance().showRobotInformation);
         ImGui::Text("Robot Name:");
         ImGui::SameLine();
         if (ImGui::InputText("##RobotNameTextInput", robotNameBuffer, sizeof(robotNameBuffer)))
         {
-            robot.name = robotNameBuffer;
+            UIState::instance().robot.name = robotNameBuffer;
         }
         
         ImGui::Text("Robot Mass:");
         ImGui::SameLine();
-        ImGui::Text(std::to_string(robot.getMass()).c_str());
+        ImGui::Text(std::to_string(UIState::instance().robot.getMass()).c_str());
 
-        if (robot.getBase() != nullptr)
+        if (UIState::instance().robot.getBase() != nullptr)
         {
             ImGui::Text("Robot Components:");
 
-            RobotComponent* currentComponent = robot.getBase();
+            RobotComponent* currentComponent = UIState::instance().robot.getBase();
 
             while (currentComponent != nullptr)
             {
@@ -369,34 +375,115 @@ void showRobotInformation(Robot& robot)
                 currentComponent = currentComponent->front;
             }   
         }
-        
     ImGui::End();
 }
 
-void addSegment(Robot& robot)
+void showRobotComponentInformation()
+{
+    if (UIState::instance().selectedComponent != nullptr)
+    {
+        static char robotComponentNameBuffer[128];
+        std::strncpy(robotComponentNameBuffer, UIState::instance().selectedComponent->name.c_str(), sizeof(robotComponentNameBuffer));
+
+        ImGui::Begin("Robot Component Information", &UIState::instance().showRobotComponentInformation);
+            ImGui::Text("Component Name:");
+            ImGui::SameLine();
+            if (ImGui::InputText("##RobotComponentNameTextInput", robotComponentNameBuffer, sizeof(robotComponentNameBuffer)))
+            {
+                UIState::instance().selectedComponent->name = robotComponentNameBuffer;    
+            }
+
+            ImGui::Text("Component Mass:");
+            ImGui::SameLine();
+            ImGui::InputDouble("##RobotComponentMassDoubleInput", &UIState::instance().selectedComponent->mass, 0.25, 0.1);
+
+            float angleRadians = UIState::instance().selectedComponent->angle;
+
+            ImGui::Text("Component Angle:");
+            ImGui::SameLine();
+            if (ImGui::SliderAngle("##RobotComponentAngleSlider", &angleRadians, -180, 180))
+            {
+                float rotatedAngle = angleRadians - UIState::instance().selectedComponent->angle;
+
+                // Add "phantom" motor to rotate rest of robot
+                if (UIState::instance().robot.getBase() == UIState::instance().selectedComponent)
+                {
+                    Motor phantom = Motor(0, "", UIState::instance().selectedComponent->position, 0, 0, 2 * M_PI, 0);
+                    phantom.front = UIState::instance().selectedComponent;
+                    phantom.rotate(rotatedAngle);
+                }
+                else
+                {
+                    Coordinate position;
+                    if (auto motor = dynamic_cast<Motor*>(UIState::instance().selectedComponent))
+                    {
+                        Motor phantom = Motor(0, "", UIState::instance().selectedComponent->position, 0, 0, 2 * M_PI, 0);
+                        phantom.front = UIState::instance().selectedComponent;
+                        phantom.rotate(rotatedAngle);
+                    }
+                    else
+                    {
+                        Coordinate position
+                        (
+                            UIState::instance().selectedComponent->back->position.x, 
+                            UIState::instance().selectedComponent->back->position.y
+                        );
+
+                        if (auto segment = dynamic_cast<Segment*>(UIState::instance().selectedComponent->back))
+                        {
+                            position.x +=  segment->height / 2;
+                            position.rotateAbout(segment->position, segment->angle);
+                        }
+                        else if (auto linear_actuator = dynamic_cast<LinearActuator*>(UIState::instance().selectedComponent->back))
+                        {
+                            position.x += linear_actuator->height / 2 + linear_actuator->getExtension();
+                            position.rotateAbout(linear_actuator->position, linear_actuator->angle);
+                        }
+                        else if (auto motor = dynamic_cast<Motor*>(UIState::instance().selectedComponent->back))
+                        {
+                            position.x += motor->radius;
+                            position.rotateAbout(motor->position, motor->angle + motor->getRotatedAngle());
+                        }
+
+                        Motor phantom = Motor(0, "", position, 0, 0, 2 * M_PI, 0);
+                        phantom.front = UIState::instance().selectedComponent;
+                        phantom.rotate(rotatedAngle);
+                    }
+                }
+                
+            }
+
+        ImGui::End();
+    }  
+}
+
+void addSegment()
 {
     Coordinate position(0, 0);
     
     // Calculate position of robot
-    if (robot.getBase() != nullptr)
+    if (UIState::instance().robot.getBase() != nullptr)
     {
-        position.x = robot.getEndEffectorPosition().x + UIState::instance().height / 2;
-        position.y = robot.getEndEffectorPosition().y;
+        position.x = UIState::instance().robot.getEndEffectorPosition().x + UIState::instance().height / 2;
+        position.y = UIState::instance().robot.getEndEffectorPosition().y;
 
-        position.rotateAbout(robot.getEndEffectorPosition(), robot.getEnd()->angle);
+        position.rotateAbout
+        (
+            UIState::instance().robot.getEndEffectorPosition(), UIState::instance().robot.getEnd()->angle
+        );
     }
 
     double angle = 0;
-    if (robot.getBase() != nullptr)
+    if (UIState::instance().robot.getBase() != nullptr)
     {
-        angle = robot.getEnd()->angle;
+        angle = UIState::instance().robot.getEnd()->angle;
     }
     
-    robot.attachToEnd
+    UIState::instance().robot.attachToEnd
     (
         new Segment
         (
-            robot.generateId(), 
+            UIState::instance().robot.generateId(), 
             "Segment", 
             position, 
             angle, 
@@ -407,27 +494,36 @@ void addSegment(Robot& robot)
     );
 }
 
-void addLinearActuator(Robot& robot)
+void addLinearActuator()
 {
     Coordinate position(0, 0);
     
     // Calculate position of robot
-    if (robot.getBase() != nullptr)
+    if (UIState::instance().robot.getBase() != nullptr)
     {
-        position.x = robot.getEndEffectorPosition().x + UIState::instance().height / 2;
-        position.y = robot.getEndEffectorPosition().y;
+        position.x = UIState::instance().robot.getEndEffectorPosition().x + UIState::instance().height / 2;
+        position.y = UIState::instance().robot.getEndEffectorPosition().y;
 
-        position.rotateAbout(robot.getEndEffectorPosition(), robot.getEnd()->angle);
+        position.rotateAbout
+        (
+            UIState::instance().robot.getEndEffectorPosition(), UIState::instance().robot.getEnd()->angle
+        );
     }
 
-    robot.attachToEnd
+    double angle = 0;
+    if (UIState::instance().robot.getBase() != nullptr)
+    {
+        angle = UIState::instance().robot.getEnd()->angle;
+    }
+
+    UIState::instance().robot.attachToEnd
     (
         new LinearActuator
         (
-            robot.generateId(), 
+            UIState::instance().robot.generateId(), 
             "Linear Actuator", 
             position, 
-            robot.getEnd()->angle, 
+            angle, 
             UIState::instance().density * UIState::instance().height * UIState::instance().width * 2,
             UIState::instance().height, 
             UIState::instance().height, 
@@ -436,27 +532,33 @@ void addLinearActuator(Robot& robot)
     );
 }
 
-void addMotor(Robot& robot)
+void addMotor()
 {
     Coordinate position(0, 0);
     
     // Calculate position of robot
-    if (robot.getBase() != nullptr)
+    if (UIState::instance().robot.getBase() != nullptr)
     {
-        position.x = robot.getEndEffectorPosition().x + UIState::instance().width / 2;
-        position.y = robot.getEndEffectorPosition().y;
+        position.x = UIState::instance().robot.getEndEffectorPosition().x + UIState::instance().width / 2;
+        position.y = UIState::instance().robot.getEndEffectorPosition().y;
 
-        position.rotateAbout(robot.getEndEffectorPosition(), robot.getEnd()->angle);
+        position.rotateAbout(UIState::instance().robot.getEndEffectorPosition(), UIState::instance().robot.getEnd()->angle);
     }
 
-    robot.attachToEnd
+    double angle = 0;
+    if (UIState::instance().robot.getBase() != nullptr)
+    {
+        angle = UIState::instance().robot.getEnd()->angle;
+    }
+
+    UIState::instance().robot.attachToEnd
     (
         new Motor
         (
-            robot.generateId(), 
+            UIState::instance().robot.generateId(), 
             "Linear Actuator", 
             position, 
-            robot.getEnd()->angle, 
+            angle, 
             UIState::instance().density * M_PI * (UIState::instance().width / 2) * (UIState::instance().width / 2),
             2 * M_PI,
             UIState::instance().width / 2
@@ -466,8 +568,6 @@ void addMotor(Robot& robot)
 
 int main()
 {
-    Robot robot;
-
     sf::RenderWindow window = sf::RenderWindow(sf::VideoMode({1920u, 1080u}), "Robot Simulator");
     window.setFramerateLimit(144);
     if (!ImGui::SFML::Init(window))
@@ -504,20 +604,23 @@ int main()
 
             if (const auto* mouseWheelScrolled = event->getIf<sf::Event::MouseWheelScrolled>())
             {
-                UIState::instance().zoom += -mouseWheelScrolled->delta * 0.01;
+                if (!io.WantCaptureMouse)
+                {
+                    UIState::instance().zoom += -mouseWheelScrolled->delta * 0.01;
 
-                // Clamp zoom to 0.1 and 10
-                if (UIState::instance().zoom < 0.1)
-                {
-                    UIState::instance().zoom = 0.1;
-                }
-                else if (UIState::instance().zoom > 10)
-                {
-                    UIState::instance().zoom = 10;
-                }
-                else
-                {
-                    robot_view.zoom(1 - mouseWheelScrolled->delta * 0.1);
+                    // Clamp zoom to 0.1 and 10
+                    if (UIState::instance().zoom < 0.1)
+                    {
+                        UIState::instance().zoom = 0.1;
+                    }
+                    else if (UIState::instance().zoom > 10)
+                    {
+                        UIState::instance().zoom = 10;
+                    }
+                    else
+                    {
+                        robot_view.zoom(1 - mouseWheelScrolled->delta * 0.1);
+                    }
                 }
             }
 
@@ -527,18 +630,21 @@ int main()
                 {
                     if (keyPressed->scancode == sf::Keyboard::Scancode::S)
                     {
-                        addSegment(robot);
+                        addSegment();
                     }
                     
                     if (keyPressed->scancode == sf::Keyboard::Scancode::L)
                     {
-                        addLinearActuator(robot);
+                        addLinearActuator();
                     }
 
                     if (keyPressed->scancode == sf::Keyboard::Scancode::M)
                     {
-                        addMotor(robot);
+                        addMotor();
                     }
+
+                    UIState::instance().selectedComponent = UIState::instance().robot.getEnd();
+                    UIState::instance().showRobotComponentInformation = true;
                 }
             }
         }
@@ -547,23 +653,28 @@ int main()
         
         window.clear(sf::Color::White);
 
-        if (robot.getEnd() != nullptr)
+        if (UIState::instance().robot.getEnd() != nullptr)
         {
-            robot_view.setCenter(coordinateToSFMLPosition(robot.getEnd()->position));
+            robot_view.setCenter(coordinateToSFMLPosition(UIState::instance().robot.getEnd()->position));
         }
 
         window.setView(robot_view);
 
-        drawMenu(robot);
-        showOpenRobotFilePopup(robot);
-        showSaveRobotFilePopup(robot);
+        drawMenu();
+        showOpenRobotFilePopup();
+        showSaveRobotFilePopup();
         
         if (UIState::instance().showRobotInformation)
         {
-            showRobotInformation(robot);
+            showRobotInformation();
         }
 
-        drawRobot(robot, window);
+        if (UIState::instance().showRobotComponentInformation && UIState::instance().selectedComponent != nullptr)
+        {
+            showRobotComponentInformation();
+        }
+
+        drawRobot(UIState::instance().robot, window);
         
         ImGui::SFML::Render(window);
 
