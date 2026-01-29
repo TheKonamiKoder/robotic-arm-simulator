@@ -71,7 +71,7 @@ void drawSegment(const Segment& segment, sf::RenderWindow& window)
     // Loop through and rotate all the corners so they are in their actual positions
     for (int i = 0; i < 4; i++)
     {
-        corners[i].rotateAbout(segment.position, segment.angle);
+        corners[i].rotateAbout(segment.position, segment.getAngle());
         convex.setPoint(i, coordinateToSFMLPosition(corners[i]));
     }
 
@@ -160,7 +160,7 @@ void drawLinearActuator(const LinearActuator& linearActuator, sf::RenderWindow& 
 
     for (int i = 0; i < 4; i++)
     {
-        shaft[i].rotateAbout(linearActuator.position, linearActuator.angle);
+        shaft[i].rotateAbout(linearActuator.position, linearActuator.getAngle());
         shaftConvex.setPoint(i, coordinateToSFMLPosition(shaft[i]));
     }
 
@@ -173,7 +173,7 @@ void drawLinearActuator(const LinearActuator& linearActuator, sf::RenderWindow& 
 
     for (int i = 0; i < 4; i++)
     {
-        head[i].rotateAbout(linearActuator.position, linearActuator.angle);
+        head[i].rotateAbout(linearActuator.position, linearActuator.getAngle());
         headConvex.setPoint(i, coordinateToSFMLPosition(head[i]));
     }
 
@@ -186,7 +186,7 @@ void drawLinearActuator(const LinearActuator& linearActuator, sf::RenderWindow& 
 
     for (int i = 0; i < 4; i++)
     {
-        base[i].rotateAbout(linearActuator.position, linearActuator.angle);
+        base[i].rotateAbout(linearActuator.position, linearActuator.getAngle());
         baseConvex.setPoint(i, coordinateToSFMLPosition(base[i]));
     }
 
@@ -397,13 +397,18 @@ void showRobotComponentInformation()
             ImGui::SameLine();
             ImGui::InputDouble("##RobotComponentMassDoubleInput", &UIState::instance().selectedComponent->mass, 0.25, 0.1);
 
-            float angleRadians = UIState::instance().selectedComponent->angle;
+            float angleRadians = UIState::instance().selectedComponent->getAngle();
+
+            if (angleRadians > M_PI)
+            {
+                angleRadians -= 2 * M_PI;
+            }
 
             ImGui::Text("Component Angle:");
             ImGui::SameLine();
             if (ImGui::SliderAngle("##RobotComponentAngleSlider", &angleRadians, -180, 180))
             {
-                float rotatedAngle = angleRadians - UIState::instance().selectedComponent->angle;
+                float rotatedAngle = angleRadians - UIState::instance().selectedComponent->getAngle();
 
                 // Add "phantom" motor to rotate rest of robot
                 if (UIState::instance().robot.getBase() == UIState::instance().selectedComponent)
@@ -414,7 +419,6 @@ void showRobotComponentInformation()
                 }
                 else
                 {
-                    Coordinate position;
                     if (auto motor = dynamic_cast<Motor*>(UIState::instance().selectedComponent))
                     {
                         Motor phantom = Motor(0, "", UIState::instance().selectedComponent->position, 0, 0, 2 * M_PI, 0);
@@ -423,29 +427,26 @@ void showRobotComponentInformation()
                     }
                     else
                     {
-                        Coordinate position
+                        Coordinate position = UIState::instance().robot.getEndEffectorPosition(UIState::instance().selectedComponent->back);
+                        //std::cout << position.x << " " << position.y << '\n';
+
+                        //std::cout << UIState::instance().selectedComponent->back << '\n';
+
+                        std::cout << UIState::instance().selectedComponent->back->position.x << " " 
+                                  << UIState::instance().selectedComponent->back->position.y << '\n';
+
+                        std::cout << UIState::instance().selectedComponent->back->getAngle() << '\n';
+
+                        Motor phantom
                         (
-                            UIState::instance().selectedComponent->back->position.x, 
-                            UIState::instance().selectedComponent->back->position.y
+                            0, 
+                            "", 
+                            UIState::instance().robot.getEndEffectorPosition(UIState::instance().selectedComponent->back), 
+                            0, 
+                            0, 
+                            2 * M_PI, 
+                            0
                         );
-
-                        if (auto segment = dynamic_cast<Segment*>(UIState::instance().selectedComponent->back))
-                        {
-                            position.x +=  segment->height / 2;
-                            position.rotateAbout(segment->position, segment->angle);
-                        }
-                        else if (auto linear_actuator = dynamic_cast<LinearActuator*>(UIState::instance().selectedComponent->back))
-                        {
-                            position.x += linear_actuator->height / 2 + linear_actuator->getExtension();
-                            position.rotateAbout(linear_actuator->position, linear_actuator->angle);
-                        }
-                        else if (auto motor = dynamic_cast<Motor*>(UIState::instance().selectedComponent->back))
-                        {
-                            position.x += motor->radius;
-                            position.rotateAbout(motor->position, motor->angle + motor->getRotatedAngle());
-                        }
-
-                        Motor phantom = Motor(0, "", position, 0, 0, 2 * M_PI, 0);
                         phantom.front = UIState::instance().selectedComponent;
                         phantom.rotate(rotatedAngle);
                     }
@@ -469,14 +470,14 @@ void addSegment()
 
         position.rotateAbout
         (
-            UIState::instance().robot.getEndEffectorPosition(), UIState::instance().robot.getEnd()->angle
+            UIState::instance().robot.getEndEffectorPosition(), UIState::instance().robot.getEnd()->getAngle()
         );
     }
 
     double angle = 0;
     if (UIState::instance().robot.getBase() != nullptr)
     {
-        angle = UIState::instance().robot.getEnd()->angle;
+        angle = UIState::instance().robot.getEnd()->getAngle();
     }
     
     UIState::instance().robot.attachToEnd
@@ -506,14 +507,14 @@ void addLinearActuator()
 
         position.rotateAbout
         (
-            UIState::instance().robot.getEndEffectorPosition(), UIState::instance().robot.getEnd()->angle
+            UIState::instance().robot.getEndEffectorPosition(), UIState::instance().robot.getEnd()->getAngle()
         );
     }
 
     double angle = 0;
     if (UIState::instance().robot.getBase() != nullptr)
     {
-        angle = UIState::instance().robot.getEnd()->angle;
+        angle = UIState::instance().robot.getEnd()->getAngle();
     }
 
     UIState::instance().robot.attachToEnd
@@ -542,13 +543,13 @@ void addMotor()
         position.x = UIState::instance().robot.getEndEffectorPosition().x + UIState::instance().width / 2;
         position.y = UIState::instance().robot.getEndEffectorPosition().y;
 
-        position.rotateAbout(UIState::instance().robot.getEndEffectorPosition(), UIState::instance().robot.getEnd()->angle);
+        position.rotateAbout(UIState::instance().robot.getEndEffectorPosition(), UIState::instance().robot.getEnd()->getAngle());
     }
 
     double angle = 0;
     if (UIState::instance().robot.getBase() != nullptr)
     {
-        angle = UIState::instance().robot.getEnd()->angle;
+        angle = UIState::instance().robot.getEnd()->getAngle();
     }
 
     UIState::instance().robot.attachToEnd

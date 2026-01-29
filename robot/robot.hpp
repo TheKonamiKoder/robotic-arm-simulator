@@ -66,7 +66,10 @@ public:
 	// This method returns the position of the centre of mass of the robot
 	// If the robot is "empty", then the function will return (0, 0)
 	Coordinate getCentreOfMass() const;
-	Coordinate getEndEffectorPosition() const;
+
+	// Calculates the end effector position
+	// By default, the end effector is the end of the robot, but a specific end effector can be passed in by user
+	Coordinate getEndEffectorPosition(RobotComponent* endEffector = nullptr) const;
 	id_t getId() const;
 	double getMass() const;
 	RobotComponent* getComponentFromId(id_t id);

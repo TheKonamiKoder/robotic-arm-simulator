@@ -45,20 +45,7 @@ void Motor::rotate(double angularDisplacement)
 	}
 	else
 	{
-		// Ensure that the newAngle is between 0 and 2 pi radians
-		// This is to be able to check if the motor has rotated past its maximum rotation
-		// A while loop is necessary in case the magnitude of the angular displacement is greater than 2 pi
-		while (!((newAngle >= 0) && (newAngle < 2 * M_PI)))
-		{
-			if (newAngle < 0)
-			{
-				newAngle += 2 * M_PI;	// This will add 2 pi to angle until it comes into range
-			}
-			if (newAngle >= 2 * M_PI)
-			{
-				newAngle -= 2 * M_PI;	// This willl remove 2 pi from angle until it comes into range
-			}
-		}
+		newAngle = this->normalise(newAngle);
 	}
 	
 	this->rotatedAngle = newAngle;
@@ -68,7 +55,7 @@ void Motor::rotate(double angularDisplacement)
 	while (currentComponent != nullptr)
 	{
 		currentComponent->position.rotateAbout(this->position, this->rotatedAngle - pastAngle);
-		currentComponent->angle += (this->rotatedAngle - pastAngle);
+		currentComponent->rotateAngle(this->rotatedAngle - pastAngle);
 		currentComponent = currentComponent->front;
 	}
 }

@@ -52,7 +52,7 @@ std::array<Coordinate, 4> getCorners(Segment segment)
     // Loop through and rotate all the corners so they are in their actual positions
     for (int i = 0; i < 4; i++)
     {
-        corners[i].rotateAbout(segment.position, segment.angle);
+        corners[i].rotateAbout(segment.position, segment.getAngle());
     }
     
     return corners;
@@ -72,6 +72,7 @@ int main()
 
         // Test rotating motor when it is in range
         motor.rotate(M_PI);
+        std::cout << motor.getAngle() << '\n';
         test("Angular Displacement Within Range", isCloseEnough(motor.getRotatedAngle(), M_PI));
 
         // Test if it is possible to "add" the extension by rotating motor more than once

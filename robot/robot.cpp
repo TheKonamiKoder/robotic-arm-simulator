@@ -167,8 +167,8 @@ void Robot::moveTo(const Coordinate& target, int maximum_cycles)
 			{
 				// v is a direction vector where |v| = 1
 				// This is proven as cos^2 x + sin^2 x = 1
-				double v_x = cos(linear_actuator->angle);
-				double v_y = sin(linear_actuator->angle);
+				double v_x = cos(linear_actuator->getAngle());
+				double v_y = sin(linear_actuator->getAngle());
 
 				// Want to find lambda, which is the distance we need to translate linear actuator
 				// Below is the derivation for how lambda is calculated:
@@ -298,7 +298,7 @@ void Robot::saveToFile(const std::string& filename) const
 			 << currentComponent->name					<< DELIMITER
 			 << currentComponent->position.x			<< DELIMITER
 			 << currentComponent->position.y			<< DELIMITER
-			 << currentComponent->angle					<< DELIMITER
+			 << currentComponent->getAngle()			<< DELIMITER
 			 << currentComponent->mass					<< DELIMITER;
 
 		// Need to check what the type of components is for the next part, since they have different attributes
@@ -513,26 +513,32 @@ Coordinate Robot::getCentreOfMass() const
 	return centreOfMass;
 }
 
-Coordinate Robot::getEndEffectorPosition() const
+Coordinate Robot::getEndEffectorPosition(RobotComponent* endEffector) const
 {
-	Coordinate end_effector_position(this->end->position.x, this->end->position.y);
-	if (auto segment = dynamic_cast<Segment*>(this->end))
+	if (endEffector == nullptr)
 	{
-		end_effector_position.x +=  segment->height / 2;
-		end_effector_position.rotateAbout(segment->position, segment->angle);
-	}
-	else if (auto linear_actuator = dynamic_cast<LinearActuator*>(this->end))
-	{
-		end_effector_position.x += linear_actuator->height / 2 + linear_actuator->getExtension();
-		end_effector_position.rotateAbout(linear_actuator->position, linear_actuator->angle);
-	}
-	else if (auto motor = dynamic_cast<Motor*>(this->end))
-	{
-		end_effector_position.x += motor->radius;
-		end_effector_position.rotateAbout(motor->position, motor->angle + motor->getRotatedAngle());
+		endEffector = this->end;
 	}
 	
-	return end_effector_position;
+	Coordinate endEffectorPosition = endEffector->position;
+
+	if (auto segment = dynamic_cast<Segment*>(endEffector))
+	{
+		endEffectorPosition.x +=  segment->height / 2;
+		endEffectorPosition.rotateAbout(segment->position, segment->getAngle());
+	}
+	else if (auto linear_actuator = dynamic_cast<LinearActuator*>(endEffector))
+	{
+		endEffectorPosition.x += linear_actuator->height / 2 + linear_actuator->getExtension();
+		endEffectorPosition.rotateAbout(linear_actuator->position, linear_actuator->getAngle());
+	}
+	else if (auto motor = dynamic_cast<Motor*>(endEffector))
+	{
+		endEffectorPosition.x += motor->radius;
+		endEffectorPosition.rotateAbout(motor->position, motor->getAngle() + motor->getRotatedAngle());
+	}
+	
+	return endEffectorPosition;
 }
 
 id_t Robot::getId() const
