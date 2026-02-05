@@ -28,7 +28,12 @@ class LinearActuator: public RobotComponent
 			double height, 
 			double width
 		);
+
+		// This will translate the components in the robot
 		void translate(double displacement);
+
+		// The centre of mass for the linear actuator is slightly different to that of the other components (as the
+		// extension also needs to be taken into account), so the method needs to be overridden.
 		Coordinate getCentreOfMass() const override;
 		double getExtension() const;
 };

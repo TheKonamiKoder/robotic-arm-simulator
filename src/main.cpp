@@ -420,7 +420,12 @@ void showRobotComponentInformation()
     if (UIState::instance().selectedComponent != nullptr)
     {
         static char robotComponentNameBuffer[128];
-        std::strncpy(robotComponentNameBuffer, UIState::instance().selectedComponent->name.c_str(), sizeof(robotComponentNameBuffer));
+        std::strncpy
+        (
+            robotComponentNameBuffer, 
+            UIState::instance().selectedComponent->name.c_str(), 
+            sizeof(robotComponentNameBuffer)
+        );
 
         ImGui::Begin("Robot Component Information", &UIState::instance().showRobotComponentInformation);
             ImGui::Text("Component Name:");
@@ -464,27 +469,120 @@ void showRobotComponentInformation()
                     }
                     else
                     {
-                        Coordinate position = UIState::instance().robot.getEndEffectorPosition(UIState::instance().selectedComponent->back);
-                        //std::cout << position.x << " " << position.y << '\n';
+                        Coordinate position = UIState::instance()
+                                                .robot
+                                                .getEndEffectorPosition(UIState::instance().selectedComponent->back);
 
-                        //std::cout << UIState::instance().selectedComponent->back << '\n';
-
-                        Motor phantom
-                        (
-                            0, 
-                            "", 
-                            UIState::instance().robot.getEndEffectorPosition(UIState::instance().selectedComponent->back), 
-                            0, 
-                            0, 
-                            2 * M_PI, 
-                            0
-                        );
+                        // Phantom motor is necessary in order to ensure that all the components attached to it will
+                        // also rotate
+                        Motor phantom(0, "", position, 0, 0, 2 * M_PI, 0);
                         phantom.front = UIState::instance().selectedComponent;
                         phantom.rotate(rotatedAngle);
                     }
                 }
-                
             }
+
+            ImGui::Text
+            (
+                "Component position: (%.2f, %.2f)", 
+                UIState::instance().selectedComponent->position.x, UIState::instance().selectedComponent->position.y
+            );
+
+            // Different information will be shown depending on the type of component
+            // if (auto motor = dynamic_cast<Motor*>(UIState::instance().selectedComponent))
+            // {
+            //     ImGui::Text("Maximum Rotation:");
+            //     ImGui::SameLine();
+
+            //     float maximumAngleRadians = motor->maximumRotation;
+                
+            //     if(ImGui::SliderAngle("##MotorMaximumRotationAngleSlider", &maximumAngleRadians, 0, 360))
+            //     {
+            //         motor->maximumRotation = maximumAngleRadians;
+            //     }
+
+            //     ImGui::Text("Radius:");
+            //     ImGui::SameLine();
+
+            //     double radius = motor->radius;
+            //     if (ImGui::InputDouble("##MotorRadiusDoubleInput", &radius, 5, 10))
+            //     {
+            //         UIState::instance().width = radius * 2;
+
+            //         // When radius changes, the positions of components attached to the motor will also change, to make
+            //         // way for the bigger/smaller motor
+                    
+            //         double displacement = radius - motor->radius;
+
+            //         // If displacement is positive, push attached components away from motor
+            //         if (displacement > 0)
+            //         {
+            //             if (UIState::instance().robot.getEnd() != motor)
+            //             {                        
+            //                 LinearActuator frontPhantom
+            //                 (
+            //                     0, "", motor->front->position, motor->getAngle(), 0, displacement, 0, 0
+            //                 );
+            //                 frontPhantom.front = motor->front;
+            //                 frontPhantom.translate(displacement);
+            //             }
+
+            //             if (UIState::instance().robot.getBase() != motor)
+            //             {                        
+            //                 LinearActuator backPhantom
+            //                 (
+            //                     0, "", motor->back->position, motor->back->getAngle() + M_PI, 0, displacement, 0, 0
+            //                 );
+            //                 backPhantom.front = motor->back;
+            //                 backPhantom.translate(displacement, true);
+            //             }
+            //         }
+            //         // If displacement is negative, push the attached components towards the motor
+            //         else if (displacement < 0)
+            //         {
+            //             if (UIState::instance().robot.getEnd() != motor)
+            //             {
+            //                 // Linear actuator is attached to end and pushes down on all of the components
+            //                 LinearActuator frontPhantom
+            //                 (
+            //                     0, 
+            //                     "", 
+            //                     UIState::instance().robot.getEnd()->position, 
+            //                     motor->getAngle() + M_PI, 
+            //                     0, 
+            //                     -displacement, 
+            //                     0, 
+            //                     0
+            //                 );
+            //                 frontPhantom.front = UIState::instance().robot.getEnd();
+            //                 // Temporarily disconnect motor from front so it doesn't get pushed
+            //                 motor->front->back = nullptr;
+            //                 frontPhantom.translate(-displacement, true);
+            //                 motor->front->back = motor; // 
+            //             }
+
+            //             if (UIState::instance().robot.getBase() != motor)
+            //             {
+            //                 // Linear actuator is attached to front and pushes down on all the components
+            //                 LinearActuator backPhantom
+            //                 (
+            //                     0,
+            //                     "",
+            //                     UIState::instance().robot.getBase()->position,
+            //                     motor->back->getAngle(),
+            //                     0,
+            //                     -displacement,
+            //                     0,
+            //                     0
+            //                 );
+            //                 backPhantom.front = UIState::instance().robot.getBase();
+            //                 backPhantom.translate(-displacement);
+            //             }
+            //         }
+                    
+            //     }
+            // }
+            
 
         ImGui::End();
     }  
@@ -500,7 +598,9 @@ void addComponent(char type)
     // Calculate position of robot
     if (UIState::instance().selectedComponent != nullptr)
     {
-        Coordinate endEffectorPosition = UIState::instance().robot.getEndEffectorPosition(UIState::instance().selectedComponent);
+        Coordinate endEffectorPosition = UIState::instance()
+                                            .robot
+                                            .getEndEffectorPosition(UIState::instance().selectedComponent);
 
         if ((type == 'S') || (type == 'L'))
         {
@@ -596,6 +696,59 @@ void addComponent(char type)
     UIState::instance().selectedComponent = robotComponent;
 }
 
+void removeComponent()
+{
+    double dx = 0; 
+    double dy = 0;
+
+    RobotComponent* robotComponent = UIState::instance().selectedComponent;
+
+    if (UIState::instance().robot.getBase() == robotComponent)
+    {
+        UIState::instance().selectedComponent = robotComponent->front;
+
+        // Need to normalise coordinates so that the new base has position (0, 0)
+        if (UIState::instance().selectedComponent != nullptr)
+        {
+            dx = -UIState::instance().selectedComponent->position.x;
+            dy = -UIState::instance().selectedComponent->position.y;
+
+            UIState::instance().selectedComponent->position = Coordinate(0, 0);
+        }
+    }
+    else
+    {
+        UIState::instance().selectedComponent = robotComponent->back;
+
+        // Find vector that each robot component needs to be translated by so that components attached correctly
+        if (UIState::instance().selectedComponent != nullptr)
+        {
+            Coordinate o = UIState::instance().robot.getEndEffectorPosition(UIState::instance().selectedComponent);
+            Coordinate a = UIState::instance().robot.getEndEffectorPosition(robotComponent);
+
+            dx = o.x - a.x;
+            dy = o.y - a.y;
+        }
+    }
+
+    // Remove component from logical representation of robot
+    UIState::instance().robot.remove(robotComponent);
+
+    if (UIState::instance().selectedComponent != nullptr)
+    {
+        // Remove component from visual representation of robot
+        RobotComponent* currentComponent = UIState::instance().selectedComponent->front;
+        
+        while (currentComponent != nullptr)
+        {
+            currentComponent->position.x += dx;
+            currentComponent->position.y += dy;
+
+            currentComponent = currentComponent->front;
+        }
+    }
+}
+
 int main()
 {
     sf::RenderWindow window = sf::RenderWindow(sf::VideoMode({1920u, 1080u}), "Robot Simulator");
@@ -674,6 +827,11 @@ int main()
                     {
                         addComponent('M');
                         UIState::instance().showRobotComponentInformation = true;
+                    }
+
+                    if (keyPressed->scancode == sf::Keyboard::Scancode::Delete)
+                    {
+                        removeComponent();
                     }
 
                     if (keyPressed->scancode == sf::Keyboard::Scancode::Left)

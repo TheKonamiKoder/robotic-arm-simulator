@@ -123,12 +123,19 @@ void Robot::remove(RobotComponent* robotComponent)
 {
 	// First we need to check that the robot component is actually in the list
 	if (this->robotComponentsMap.find(robotComponent->getId()) != this->robotComponentsMap.end())
-	{
+	{		
 		// Check if it is the first component
 		if (this->base == robotComponent)
 		{
 			this->base = robotComponent->front;		// The new base is now the component in front of the old base
-			this->base->back = nullptr; 			// There is nothing behind the new base 
+			if (this->base != nullptr)				// In case the base was the only component in the robot
+			{
+				this->base->back = nullptr; 		// There is nothing behind the new base
+			}
+			else
+			{
+				this->end = nullptr;				// Set the end to nullptr as well since last component is removed
+			} 
 		}
 		else
 		{
