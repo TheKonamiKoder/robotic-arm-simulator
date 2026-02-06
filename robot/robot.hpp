@@ -12,7 +12,6 @@ class Robot
 {
 private:
 	id_t id;
-	double mass = 0;
 	std::unordered_map<id_t, RobotComponent*> robotComponentsMap;	// Stores internal data structures
 	RobotComponent* base = nullptr;
 	RobotComponent* end = nullptr;

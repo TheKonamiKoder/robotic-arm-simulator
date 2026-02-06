@@ -70,7 +70,6 @@ id_t Robot::generateId() const
 void Robot::attachToEnd(RobotComponent* robotComponent)
 {
 	this->robotComponentsMap[robotComponent->getId()] = robotComponent;
-	this->mass += robotComponent->mass;		// Increase mass of robot by mass of robot component
 	
 	// Check if the robot has a base
 	if (this->base == nullptr)
@@ -99,7 +98,6 @@ void Robot::attachTo(RobotComponent* a, RobotComponent* b)
 	else
 	{
 		this->robotComponentsMap[b->getId()] = b;
-		this->mass += b->mass;
 
 		// Inserts b in front of a
 		b->front = a->front;	// The component in front of a is now in front of b
@@ -112,7 +110,6 @@ void Robot::attachTo(RobotComponent* a, RobotComponent* b)
 void Robot::attachBaseTo(RobotComponent* robotComponent)
 {
 	this->robotComponentsMap[robotComponent->getId()] = robotComponent;
-	this->mass += robotComponent->mass;
 
 	this->base->back = robotComponent;		// robotComponent is now behind the base 
 	robotComponent->front = this->base;		// The base is now in front of robotComponent
@@ -151,8 +148,6 @@ void Robot::remove(RobotComponent* robotComponent)
 				robotComponent->front->back = robotComponent->back;
 			}
 		}
-
-		this->mass -= robotComponent->mass;
 
 		this->robotComponentsMap.erase(robotComponent->getId());	// Remove the robot component from the map
 		delete robotComponent;										// Delete the robot component from the heap
@@ -483,8 +478,6 @@ void Robot::loadFromFile(const std::string& filename)
 
 void Robot::reset()
 {
-	this->mass = 0;
-
 	for (auto pair : this->robotComponentsMap)
 	{
 		delete pair.second;
@@ -511,10 +504,10 @@ Coordinate Robot::getCentreOfMass() const
 		currentComponent = currentComponent->front;
 	}
 	
-	if (this->mass != 0)
+	if (this->getMass() != 0)
 	{
-		centreOfMass.x /= this->mass;
-		centreOfMass.y /= this->mass;
+		centreOfMass.x /= this->getMass();
+		centreOfMass.y /= this->getMass();
 	}
 
 	return centreOfMass;
@@ -555,7 +548,17 @@ id_t Robot::getId() const
 
 double Robot::getMass() const
 {
-	return this->mass;
+	double mass = 0;
+
+	RobotComponent* currentComponent = this->base;
+	while (currentComponent != nullptr)
+	{
+		mass += currentComponent->mass;
+
+		currentComponent = currentComponent->front;
+	}
+
+	return mass;
 }
 
 RobotComponent* Robot::getComponentFromId(id_t id)
