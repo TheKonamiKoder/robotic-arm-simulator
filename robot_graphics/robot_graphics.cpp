@@ -247,12 +247,14 @@ void drawEndEffectors(const Robot& robot, sf::RenderWindow& window)
 void drawCentreOfMass(const Robot& robot, sf::RenderWindow& window)
 {
     if (robot.getMass() != 0)
-    {    
+    {
+        Coordinate centreOfMass = robot.getCentreOfMass();
+        
         sf::CircleShape circle;
         circle.setFillColor(sf::Color::Blue);
         circle.setRadius(5);
 
-        circle.setPosition(coordinateToSFMLPosition(robot.getCentreOfMass()));
+        circle.setPosition(sf::Vector2f(centreOfMass.x - 5, -centreOfMass.y - 5));
 
         window.draw(circle);
     }
