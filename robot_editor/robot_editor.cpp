@@ -45,6 +45,14 @@ void drawMenu()
             {
                 UIState::instance().showRobotInformation = true;
             }
+            if (UIState::instance().selectedComponent != nullptr)
+            {
+                if (ImGui::MenuItem("Robot Component Information"))
+                {
+                    UIState::instance().showRobotComponentInformation = true;
+                }
+            }
+            
             ImGui::EndMenu();
         }
         ImGui::EndMainMenuBar();
