@@ -101,6 +101,11 @@ void showOpenRobotFilePopup()
 
             UIState::instance().robot.loadFromFile(filename);
 
+            if (UIState::instance().robot.getBase() != nullptr)
+            {
+                UIState::instance().selectedComponent = UIState::instance().robot.getBase();
+            }
+
             ImGui::CloseCurrentPopup();
         }
 
@@ -172,13 +177,27 @@ void showRobotInformation()
         {
             ImGui::Text("Robot Components:");
 
-            RobotComponent* currentComponent = UIState::instance().robot.getBase();
+            float avail = ImGui::GetContentRegionAvail().x;
+            float listWidth = avail * 0.75;
+            ImGui::SetCursorPosX((avail - listWidth) * 0.5);
 
-            while (currentComponent != nullptr)
+            if (ImGui::BeginListBox("##RobotComponentsListBox", ImVec2(listWidth, 0)))
             {
-                ImGui::Text(currentComponent->name.c_str());
+                RobotComponent* currentComponent = UIState::instance().robot.getBase();
 
-                currentComponent = currentComponent->front;
+                while (currentComponent != nullptr)
+                {
+                    bool isSelected = (UIState::instance().selectedComponent == currentComponent);
+                    std::string selectableId = currentComponent->name + "##" + std::to_string(currentComponent->getId());
+                    if (ImGui::Selectable(selectableId.c_str(), isSelected))
+                    {
+                        UIState::instance().selectedComponent = currentComponent;
+                    }
+                    
+                    currentComponent = currentComponent->front;
+                }
+
+                ImGui::EndListBox();
             }   
         }
     ImGui::End();
