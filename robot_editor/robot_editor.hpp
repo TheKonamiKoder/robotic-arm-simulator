@@ -45,6 +45,10 @@ void showSaveRobotFilePopup();
 // of it
 void showRobotInformation();
 
+// This function will show segment specific information
+// It will also be used within the robot information tool
+void showSegmentInformation();
+
 // This function will show motor specific information
 // It will be a part of the robot infomration tool
 void showMotorInformation();

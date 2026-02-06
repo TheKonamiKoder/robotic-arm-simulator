@@ -236,9 +236,75 @@ void showRobotComponentInformation()
             {
                showMotorInformation(); 
             }
-
+            else if (auto segment = dynamic_cast<Segment*>(UIState::instance().selectedComponent))
+            {
+                showSegmentInformation();
+            }
+            
         ImGui::End();
     }  
+}
+
+void showSegmentInformation()
+{
+    Segment* segment = static_cast<Segment*>(UIState::instance().selectedComponent);
+
+    ImGui::Text("Width");
+    ImGui::SameLine();
+
+    double width = segment->width;
+    if (ImGui::InputDouble("##SegmentWidthDoubleInput", &width, 5, 10))
+    {
+        if (width > 0)
+        {
+            segment->width = width;
+
+            UIState::instance().width = width;
+        }
+    }
+
+    ImGui::Text("Height");
+    ImGui::SameLine();
+
+    double height = segment->height;
+    if (ImGui::InputDouble("##SegmentHeightDoubleInput", &height, 5, 10))
+    {
+        if (height > 0)
+        {
+            double displacement = (height - segment->height) / 2;
+
+            segment->height = height;
+
+            UIState::instance().height = height;
+
+            // Calculate dx and dy to change the position of the segment
+            double segment_dx = 0;
+            double segment_dy = 0;
+
+            // Segment only needs to change position if it is not the base component
+            if (segment->back != nullptr)
+            {
+                segment_dx = displacement * cos(segment->getAngle());
+                segment_dy = displacement * sin(segment->getAngle());
+            }
+
+            segment->position.x += segment_dx;
+            segment->position.y += segment_dy;
+
+            double component_dx = displacement * cos(segment->getAngle());
+            double component_dy = displacement * sin(segment->getAngle());
+
+            RobotComponent* currentComponent = segment->front;
+
+            while (currentComponent != nullptr)
+            {
+                currentComponent->position.x += segment_dx + component_dx;
+                currentComponent->position.y += segment_dy + component_dy;
+
+                currentComponent = currentComponent->front;
+            }
+        }
+    }
 }
 
 void showMotorInformation()
@@ -249,7 +315,6 @@ void showMotorInformation()
     ImGui::SameLine();
 
     float maximumAngleRadians = motor->maximumRotation;
-    
     if(ImGui::SliderAngle("##MotorMaximumRotationAngleSlider", &maximumAngleRadians, 0, 360))
     {
         motor->maximumRotation = maximumAngleRadians;
@@ -261,42 +326,48 @@ void showMotorInformation()
     double radius = motor->radius;
     if (ImGui::InputDouble("##MotorRadiusDoubleInput", &radius, 5, 10))
     {
-        double displacement = radius - motor->radius;
-
-        motor->radius = radius;
-
-        // Change UIState height and width in order to keep everything in proportion
-        UIState::instance().height = (UIState::instance().height / UIState::instance().width) * (radius * 2);
-        UIState::instance().width = radius * 2;
-
-        // When radius changes, the positions of components attached to the motor will also change, to make
-        // way for the bigger/smaller motor
-
-        // Calculate dx and dy to change the position of the motor
-        double motor_dx = 0;
-        double motor_dy = 0;
-
-        // Motor only needs to change position if it is not the base component
-        if (motor->back != nullptr)
+        // Input verification so that the user does not give a motor 0 radius or negative, which would break the system
+        // Therefore the code only executes if radius is positive
+        // Otherwise, the radius of the motor stays the same
+        if (radius > 0)
         {
-            motor_dx = displacement * cos(motor->back->getAngle());
-            motor_dy = displacement * sin(motor->back->getAngle());   
-        }
-        
-        motor->position.x += motor_dx;
-        motor->position.y += motor_dy;
-        
-        double component_dx = displacement * cos(motor->getAngle());
-        double component_dy = displacement * sin(motor->getAngle());
+            double displacement = radius - motor->radius;
+            
+            motor->radius = radius;
 
-        RobotComponent* currentComponent = motor->front;
+            // Change UIState height and width in order to keep everything in proportion
+            UIState::instance().height = (UIState::instance().height / UIState::instance().width) * (radius * 2);
+            UIState::instance().width = radius * 2;
 
-        while (currentComponent != nullptr)
-        {
-            currentComponent->position.x += motor_dx + component_dx;
-            currentComponent->position.y += motor_dy + component_dy;
+            // When radius changes, the positions of components attached to the motor will also change, to make
+            // way for the bigger/smaller motor
 
-            currentComponent = currentComponent->front;
+            // Calculate dx and dy to change the position of the motor
+            double motor_dx = 0;
+            double motor_dy = 0;
+
+            // Motor only needs to change position if it is not the base component
+            if (motor->back != nullptr)
+            {
+                motor_dx = displacement * cos(motor->back->getAngle());
+                motor_dy = displacement * sin(motor->back->getAngle());   
+            }
+            
+            motor->position.x += motor_dx;
+            motor->position.y += motor_dy;
+            
+            double component_dx = displacement * cos(motor->getAngle());
+            double component_dy = displacement * sin(motor->getAngle());
+
+            RobotComponent* currentComponent = motor->front;
+
+            while (currentComponent != nullptr)
+            {
+                currentComponent->position.x += motor_dx + component_dx;
+                currentComponent->position.y += motor_dy + component_dy;
+
+                currentComponent = currentComponent->front;
+            }
         }
     }
 }
