@@ -232,13 +232,17 @@ void showRobotComponentInformation()
             );
 
             // Different information will be shown depending on the type of component
-            if (auto motor = dynamic_cast<Motor*>(UIState::instance().selectedComponent))
+            if (auto segment = dynamic_cast<Segment*>(UIState::instance().selectedComponent))
+            {
+                showSegmentInformation();
+            }
+            else if (auto motor = dynamic_cast<Motor*>(UIState::instance().selectedComponent))
             {
                showMotorInformation(); 
             }
-            else if (auto segment = dynamic_cast<Segment*>(UIState::instance().selectedComponent))
+            else if (auto linearActuator = dynamic_cast<LinearActuator*>(UIState::instance().selectedComponent))
             {
-                showSegmentInformation();
+                showLinearActuatorInformation();
             }
             
         ImGui::End();
@@ -249,7 +253,7 @@ void showSegmentInformation()
 {
     Segment* segment = static_cast<Segment*>(UIState::instance().selectedComponent);
 
-    ImGui::Text("Width");
+    ImGui::Text("Width:");
     ImGui::SameLine();
 
     double width = segment->width;
@@ -263,7 +267,7 @@ void showSegmentInformation()
         }
     }
 
-    ImGui::Text("Height");
+    ImGui::Text("Height:");
     ImGui::SameLine();
 
     double height = segment->height;
@@ -307,6 +311,80 @@ void showSegmentInformation()
     }
 }
 
+void showLinearActuatorInformation()
+{
+    LinearActuator* linearActuator = static_cast<LinearActuator*>(UIState::instance().selectedComponent);
+
+    ImGui::Text("Maximum Extension:");
+    ImGui::SameLine();
+
+    double maximumExtension = linearActuator->maximumExtension;
+    if (ImGui::InputDouble("##LinearActuatorMaximumExtensionDoubleInput", &maximumExtension, 2.5, 5))
+    {
+        if (maximumExtension > 0)
+        {
+            linearActuator->maximumExtension = maximumExtension;
+        }
+    }
+
+    ImGui::Text("Width:");
+    ImGui::SameLine();
+
+    double width = linearActuator->width;
+    if (ImGui::InputDouble("##LinearActuatorWidthDoubleInput", &width, 5, 10))
+    {
+        if (width > 0)
+        {
+            linearActuator->width = width;
+
+            UIState::instance().width = width;
+        }
+    }
+
+    ImGui::Text("Height:");
+    ImGui::SameLine();
+
+    double height = linearActuator->height;
+    if (ImGui::InputDouble("##LinearActuatorHeightDoubleInput", &height, 5, 10))
+    {
+        if (height > 0)
+        {
+            double displacement = (height - linearActuator->height) / 2;
+
+            linearActuator->height = height;
+
+            UIState::instance().height = height;
+
+            // Calculate dx and dy to change the position of the segment
+            double linearActuator_dx = 0;
+            double linearActuator_dy = 0;
+
+            // Segment only needs to change position if it is not the base component
+            if (linearActuator->back != nullptr)
+            {
+                linearActuator_dx = displacement * cos(linearActuator->getAngle());
+                linearActuator_dy = displacement * sin(linearActuator->getAngle());
+            }
+
+            linearActuator->position.x += linearActuator_dx;
+            linearActuator->position.y += linearActuator_dy;
+
+            double component_dx = displacement * cos(linearActuator->getAngle());
+            double component_dy = displacement * sin(linearActuator->getAngle());
+
+            RobotComponent* currentComponent = linearActuator->front;
+
+            while (currentComponent != nullptr)
+            {
+                currentComponent->position.x += linearActuator_dx + component_dx;
+                currentComponent->position.y += linearActuator_dy + component_dy;
+
+                currentComponent = currentComponent->front;
+            }
+        }
+    }
+}
+
 void showMotorInformation()
 {
     Motor* motor = static_cast<Motor*>(UIState::instance().selectedComponent);
@@ -315,7 +393,7 @@ void showMotorInformation()
     ImGui::SameLine();
 
     float maximumAngleRadians = motor->maximumRotation;
-    if(ImGui::SliderAngle("##MotorMaximumRotationAngleSlider", &maximumAngleRadians, 0, 360))
+    if (ImGui::SliderAngle("##MotorMaximumRotationAngleSlider", &maximumAngleRadians, 0, 360))
     {
         motor->maximumRotation = maximumAngleRadians;
     }

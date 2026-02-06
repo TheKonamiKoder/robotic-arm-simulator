@@ -45,17 +45,21 @@ void showSaveRobotFilePopup();
 // of it
 void showRobotInformation();
 
+// This tool will show infromation about the selected robot component
+// It will also allow the user to edit properties of the selected robot component
+void showRobotComponentInformation();
+
 // This function will show segment specific information
 // It will also be used within the robot information tool
 void showSegmentInformation();
 
+// This function will show linear actuator specific information
+// It will also be used within the robot information tool
+void showLinearActuatorInformation();
+
 // This function will show motor specific information
 // It will be a part of the robot infomration tool
 void showMotorInformation();
-
-// This tool will show infromation about the selected robot component
-// It will also allow the user to edit properties of the selected robot component
-void showRobotComponentInformation();
 
 // Will add a component to the robot
 // The type can either be: 'S' for segment, 'L' for motor or 'M' for motor
