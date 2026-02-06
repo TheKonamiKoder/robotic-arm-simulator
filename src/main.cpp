@@ -161,6 +161,7 @@ int main()
 
         drawRobot(UIState::instance().robot, window, UIState::instance().selectedComponent);
         drawEndEffectors(UIState::instance().robot, window);
+        drawCentreOfMass(UIState::instance().robot, window);
         
         ImGui::SFML::Render(window);
 

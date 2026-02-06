@@ -1,8 +1,6 @@
 #pragma once
 
 #include <SFML/Graphics.hpp>
-#include <imgui-SFML.h>
-#include <imgui.h>
 
 class RobotComponent;
 class Coordinate;
@@ -36,3 +34,7 @@ void drawRobot(const Robot& robot, sf::RenderWindow& window, const RobotComponen
 // This function will draw the end effectors of each component to the window
 // This is mainly used for debugging to see if robot components are being drawn correctly
 void drawEndEffectors(const Robot& robot, sf::RenderWindow& window);
+
+// This function will display the position of the centre of mass to the window
+// This is used so that the user is aware where the centre of mass of the robot is - and whether it will tip
+void drawCentreOfMass(const Robot& robot, sf::RenderWindow& window);
