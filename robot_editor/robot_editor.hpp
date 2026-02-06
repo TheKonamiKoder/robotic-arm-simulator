@@ -45,6 +45,10 @@ void showSaveRobotFilePopup();
 // of it
 void showRobotInformation();
 
+// This function will show motor specific information
+// It will be a part of the robot infomration tool
+void showMotorInformation();
+
 // This tool will show infromation about the selected robot component
 // It will also allow the user to edit properties of the selected robot component
 void showRobotComponentInformation();

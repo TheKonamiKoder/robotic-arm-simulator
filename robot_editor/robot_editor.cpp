@@ -232,110 +232,80 @@ void showRobotComponentInformation()
             );
 
             // Different information will be shown depending on the type of component
-            // if (auto motor = dynamic_cast<Motor*>(UIState::instance().selectedComponent))
-            // {
-            //     ImGui::Text("Maximum Rotation:");
-            //     ImGui::SameLine();
-
-            //     float maximumAngleRadians = motor->maximumRotation;
-                
-            //     if(ImGui::SliderAngle("##MotorMaximumRotationAngleSlider", &maximumAngleRadians, 0, 360))
-            //     {
-            //         motor->maximumRotation = maximumAngleRadians;
-            //     }
-
-            //     ImGui::Text("Radius:");
-            //     ImGui::SameLine();
-
-            //     double radius = motor->radius;
-            //     if (ImGui::InputDouble("##MotorRadiusDoubleInput", &radius, 5, 10))
-            //     {
-            //         UIState::instance().width = radius * 2;
-
-            //         // When radius changes, the positions of components attached to the motor will also change, to make
-            //         // way for the bigger/smaller motor
-                    
-            //         double displacement = radius - motor->radius;
-
-            //         // If displacement is positive, push attached components away from motor
-            //         if (displacement > 0)
-            //         {
-            //             if (UIState::instance().robot.getEnd() != motor)
-            //             {                        
-            //                 LinearActuator frontPhantom
-            //                 (
-            //                     0, "", motor->front->position, motor->getAngle(), 0, displacement, 0, 0
-            //                 );
-            //                 frontPhantom.front = motor->front;
-            //                 frontPhantom.translate(displacement);
-            //             }
-
-            //             if (UIState::instance().robot.getBase() != motor)
-            //             {                        
-            //                 LinearActuator backPhantom
-            //                 (
-            //                     0, "", motor->back->position, motor->back->getAngle() + M_PI, 0, displacement, 0, 0
-            //                 );
-            //                 backPhantom.front = motor->back;
-            //                 backPhantom.translate(displacement, true);
-            //             }
-            //         }
-            //         // If displacement is negative, push the attached components towards the motor
-            //         else if (displacement < 0)
-            //         {
-            //             if (UIState::instance().robot.getEnd() != motor)
-            //             {
-            //                 // Linear actuator is attached to end and pushes down on all of the components
-            //                 LinearActuator frontPhantom
-            //                 (
-            //                     0, 
-            //                     "", 
-            //                     UIState::instance().robot.getEnd()->position, 
-            //                     motor->getAngle() + M_PI, 
-            //                     0, 
-            //                     -displacement, 
-            //                     0, 
-            //                     0
-            //                 );
-            //                 frontPhantom.front = UIState::instance().robot.getEnd();
-            //                 // Temporarily disconnect motor from front so it doesn't get pushed
-            //                 motor->front->back = nullptr;
-            //                 frontPhantom.translate(-displacement, true);
-            //                 motor->front->back = motor; // 
-            //             }
-
-            //             if (UIState::instance().robot.getBase() != motor)
-            //             {
-            //                 // Linear actuator is attached to front and pushes down on all the components
-            //                 LinearActuator backPhantom
-            //                 (
-            //                     0,
-            //                     "",
-            //                     UIState::instance().robot.getBase()->position,
-            //                     motor->back->getAngle(),
-            //                     0,
-            //                     -displacement,
-            //                     0,
-            //                     0
-            //                 );
-            //                 backPhantom.front = UIState::instance().robot.getBase();
-            //                 backPhantom.translate(-displacement);
-            //             }
-            //         }
-                    
-            //     }
-            // }
-            
+            if (auto motor = dynamic_cast<Motor*>(UIState::instance().selectedComponent))
+            {
+               showMotorInformation(); 
+            }
 
         ImGui::End();
     }  
+}
+
+void showMotorInformation()
+{
+    Motor* motor = static_cast<Motor*>(UIState::instance().selectedComponent);
+
+    ImGui::Text("Maximum Rotation:");
+    ImGui::SameLine();
+
+    float maximumAngleRadians = motor->maximumRotation;
+    
+    if(ImGui::SliderAngle("##MotorMaximumRotationAngleSlider", &maximumAngleRadians, 0, 360))
+    {
+        motor->maximumRotation = maximumAngleRadians;
+    }
+
+    ImGui::Text("Radius:");
+    ImGui::SameLine();
+
+    double radius = motor->radius;
+    if (ImGui::InputDouble("##MotorRadiusDoubleInput", &radius, 5, 10))
+    {
+        double displacement = radius - motor->radius;
+
+        motor->radius = radius;
+
+        // Change UIState height and width in order to keep everything in proportion
+        UIState::instance().height = (UIState::instance().height / UIState::instance().width) * (radius * 2);
+        UIState::instance().width = radius * 2;
+
+        // When radius changes, the positions of components attached to the motor will also change, to make
+        // way for the bigger/smaller motor
+
+        // Calculate dx and dy to change the position of the motor
+        double motor_dx = 0;
+        double motor_dy = 0;
+
+        // Motor only needs to change position if it is not the base component
+        if (motor->back != nullptr)
+        {
+            motor_dx = displacement * cos(motor->back->getAngle());
+            motor_dy = displacement * sin(motor->back->getAngle());   
+        }
+        
+        motor->position.x += motor_dx;
+        motor->position.y += motor_dy;
+        
+        double component_dx = displacement * cos(motor->getAngle());
+        double component_dy = displacement * sin(motor->getAngle());
+
+        RobotComponent* currentComponent = motor->front;
+
+        while (currentComponent != nullptr)
+        {
+            currentComponent->position.x += motor_dx + component_dx;
+            currentComponent->position.y += motor_dy + component_dy;
+
+            currentComponent = currentComponent->front;
+        }
+    }
 }
 
 void addComponent(char type)
 {
     Coordinate position(0, 0);
     
-    // Calculate position of robot
+    // Calculate position of robot, if it is not the first component
     if (UIState::instance().selectedComponent != nullptr)
     {
         Coordinate endEffectorPosition = UIState::instance()
