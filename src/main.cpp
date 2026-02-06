@@ -105,7 +105,10 @@ int main()
 
                     if (keyPressed->scancode == sf::Keyboard::Scancode::Delete)
                     {
-                        removeComponent();
+                        if (UIState::instance().selectedComponent != nullptr)
+                        {
+                            removeComponent();
+                        }
                     }
 
                     if (keyPressed->scancode == sf::Keyboard::Scancode::Left)
