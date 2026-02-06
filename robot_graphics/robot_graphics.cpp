@@ -249,8 +249,8 @@ void drawCentreOfMass(const Robot& robot, sf::RenderWindow& window)
     if (robot.getMass() != 0)
     {    
         sf::CircleShape circle;
-        circle.setFillColor(sf::Color::Green);
-        circle.setRadius(2);
+        circle.setFillColor(sf::Color::Blue);
+        circle.setRadius(5);
 
         circle.setPosition(coordinateToSFMLPosition(robot.getCentreOfMass()));
 
