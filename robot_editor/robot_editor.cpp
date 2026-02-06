@@ -181,7 +181,9 @@ void showRobotInformation()
             float listWidth = avail * 0.75;
             ImGui::SetCursorPosX((avail - listWidth) * 0.5);
 
-            if (ImGui::BeginListBox("##RobotComponentsListBox", ImVec2(listWidth, 0)))
+            float listHeight = ImGui::GetContentRegionAvail().y;
+
+            if (ImGui::BeginListBox("##RobotComponentsListBox", ImVec2(listWidth, listHeight)))
             {
                 RobotComponent* currentComponent = UIState::instance().robot.getBase();
 
