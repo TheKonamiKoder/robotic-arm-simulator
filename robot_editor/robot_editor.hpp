@@ -14,6 +14,9 @@ struct UIState
 {
     bool showRobotInformation = false;
     bool showRobotComponentInformation = false;
+    bool showSaveRobotFilePopup = false;
+
+    bool saved = true;
 
     double zoom = 1;
 

@@ -20,10 +20,24 @@ void drawMenu()
         {
             if (ImGui::MenuItem("New")) 
             {
-                UIState::instance().selectedComponent = nullptr;
-                UIState::instance().showRobotComponentInformation = false;
-                UIState::instance().robot.reset();
-                UIState::instance().showRobotInformation = true;
+                if (UIState::instance().saved)
+                {
+                    // Reset UI state values
+                    UIState::instance().selectedComponent = nullptr;
+                    UIState::instance().showRobotComponentInformation = false;
+
+                    UIState::instance().zoom = 1;
+                    UIState::instance().height = 100;
+                    UIState::instance().width = 50;
+                    UIState::instance().density = 0.001;
+
+                    UIState::instance().robot.reset();
+                    UIState::instance().showRobotInformation = true;
+                }
+                else
+                {
+                    saveRobotFilePopup = true;
+                }
             }
             
             if (ImGui::MenuItem("Open"))
@@ -118,6 +132,7 @@ void showSaveRobotFilePopup()
             std::string filename = filenameBuffer;
 
             UIState::instance().robot.saveToFile(filename);
+            UIState::instance().saved = true;
 
             ImGui::CloseCurrentPopup();
         }
@@ -127,6 +142,8 @@ void showSaveRobotFilePopup()
         if (ImGui::Button("Cancel", ImVec2(120, 0)))
         {
             ImGui::CloseCurrentPopup();
+
+            UIState::instance().saved = true;   // Althought it hasn't been saved, the user was still given the option
         }
 
         ImGui::EndPopup();
@@ -144,6 +161,7 @@ void showRobotInformation()
         if (ImGui::InputText("##RobotNameTextInput", robotNameBuffer, sizeof(robotNameBuffer)))
         {
             UIState::instance().robot.name = robotNameBuffer;
+            UIState::instance().saved = false;
         }
         
         ImGui::Text("Robot Mass:");
@@ -184,11 +202,18 @@ void showRobotComponentInformation()
             if (ImGui::InputText("##RobotComponentNameTextInput", robotComponentNameBuffer, sizeof(robotComponentNameBuffer)))
             {
                 UIState::instance().selectedComponent->name = robotComponentNameBuffer;    
+                UIState::instance().saved = false;
             }
 
             ImGui::Text("Component Mass:");
             ImGui::SameLine();
-            ImGui::InputDouble("##RobotComponentMassDoubleInput", &UIState::instance().selectedComponent->mass, 0.25, 0.1);
+            if 
+            (
+                ImGui::InputDouble("##RobotComponentMassDoubleInput", &UIState::instance().selectedComponent->mass, 0.25, 0.1)
+            )
+            {
+                UIState::instance().saved = false;
+            }
 
             float angleRadians = UIState::instance().selectedComponent->getAngle();
 
@@ -231,6 +256,8 @@ void showRobotComponentInformation()
                         phantom.rotate(rotatedAngle);
                     }
                 }
+
+                UIState::instance().saved = false;
             }
 
             ImGui::Text
@@ -272,6 +299,8 @@ void showSegmentInformation()
             segment->width = width;
 
             UIState::instance().width = width;
+            
+            UIState::instance().saved = false;
         }
     }
 
@@ -315,6 +344,8 @@ void showSegmentInformation()
 
                 currentComponent = currentComponent->front;
             }
+
+            UIState::instance().saved = false;
         }
     }
 }
@@ -333,6 +364,8 @@ void showLinearActuatorInformation()
         {
             linearActuator->maximumExtension = maximumExtension;
         }
+
+        UIState::instance().saved = false;
     }
 
     ImGui::Text("Width:");
@@ -346,6 +379,8 @@ void showLinearActuatorInformation()
             linearActuator->width = width;
 
             UIState::instance().width = width;
+
+            UIState::instance().saved = false;
         }
     }
 
@@ -389,6 +424,8 @@ void showLinearActuatorInformation()
 
                 currentComponent = currentComponent->front;
             }
+
+            UIState::instance().saved = false;
         }
     }
 }
@@ -404,6 +441,8 @@ void showMotorInformation()
     if (ImGui::SliderAngle("##MotorMaximumRotationAngleSlider", &maximumAngleRadians, 0, 360))
     {
         motor->maximumRotation = maximumAngleRadians;
+        
+        UIState::instance().saved = false;
     }
 
     ImGui::Text("Radius:");
@@ -454,6 +493,8 @@ void showMotorInformation()
 
                 currentComponent = currentComponent->front;
             }
+
+            UIState::instance().saved = false;
         }
     }
 }
@@ -561,6 +602,7 @@ void addComponent(char type)
     }
 
     UIState::instance().selectedComponent = robotComponent;
+    UIState::instance().saved = false;
 }
 
 void removeComponent()
@@ -614,4 +656,6 @@ void removeComponent()
             currentComponent = currentComponent->front;
         }
     }
+    
+    UIState::instance().saved = false;
 }

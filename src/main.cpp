@@ -43,7 +43,14 @@ int main()
 
             if (event->is<sf::Event::Closed>())
             {
-                window.close();
+                if (UIState::instance().saved)
+                {
+                    window.close();
+                }
+                else
+                {
+                    UIState::instance().showSaveRobotFilePopup = true;
+                }
             }
 
             if (const auto* resized = event->getIf<sf::Event::Resized>())
@@ -144,6 +151,13 @@ int main()
         {
             showRobotComponentInformation();
         }
+
+        if (UIState::instance().showSaveRobotFilePopup)
+        {
+            ImGui::OpenPopup("Save Robot File");
+            UIState::instance().showSaveRobotFilePopup = false;
+        }
+        
 
         drawRobot(UIState::instance().robot, window, UIState::instance().selectedComponent);
         drawEndEffectors(UIState::instance().robot, window);
