@@ -144,6 +144,11 @@ int main()
         drawMenu();
         showOpenRobotFilePopup();
         showSaveRobotFilePopup();
+
+        if (UIState::instance().showRobotEditorSettings)
+        {
+            showRobotEditorSettings();
+        }
         
         if (UIState::instance().showRobotInformation)
         {
@@ -161,10 +166,24 @@ int main()
             UIState::instance().showSaveRobotFilePopup = false;
         }
         
+        if (UIState::instance().highlightSelectedComponent)
+        {
+            drawRobot(UIState::instance().robot, window, UIState::instance().selectedComponent);
+        }
+        else
+        {
+            drawRobot(UIState::instance().robot, window);
+        }
+        
+        if (UIState::instance().showEndEffectors)
+        {
+            drawEndEffectors(UIState::instance().robot, window);
+        }
 
-        drawRobot(UIState::instance().robot, window, UIState::instance().selectedComponent);
-        drawEndEffectors(UIState::instance().robot, window);
-        drawCentreOfMass(UIState::instance().robot, window);
+        if (UIState::instance().showCentreOfMass)
+        {
+            drawCentreOfMass(UIState::instance().robot, window);
+        }
         
         ImGui::SFML::Render(window);
 

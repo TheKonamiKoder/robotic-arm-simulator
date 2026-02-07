@@ -55,10 +55,16 @@ void drawMenu()
 
         if (ImGui::BeginMenu("View"))
         {
+            if (ImGui::MenuItem("Robot Editor Settings"))
+            {
+                UIState::instance().showRobotEditorSettings = true;
+            }
+
             if (ImGui::MenuItem("Robot Information"))
             {
                 UIState::instance().showRobotInformation = true;
             }
+
             if (UIState::instance().selectedComponent != nullptr)
             {
                 if (ImGui::MenuItem("Robot Component Information"))
@@ -153,6 +159,15 @@ void showSaveRobotFilePopup()
 
         ImGui::EndPopup();
     }
+}
+
+void showRobotEditorSettings()
+{
+    ImGui::Begin("Robot Editor Settings", &UIState::instance().showRobotEditorSettings);
+        ImGui::Checkbox("Highlight selected component", &UIState::instance().highlightSelectedComponent);
+        ImGui::Checkbox("Show end effectors", &UIState::instance().showEndEffectors);
+        ImGui::Checkbox("Show centre of mass", &UIState::instance().showCentreOfMass);
+    ImGui::End();
 }
 
 void showRobotInformation()

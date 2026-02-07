@@ -14,7 +14,12 @@ struct UIState
 {
     bool showRobotInformation = false;
     bool showRobotComponentInformation = false;
+    bool showRobotEditorSettings = false;
     bool showSaveRobotFilePopup = false;
+
+    bool highlightSelectedComponent = true;
+    bool showEndEffectors = true;
+    bool showCentreOfMass = true;
 
     bool saved = true;
 
@@ -43,6 +48,10 @@ void showOpenRobotFilePopup();
 
 // This will show a popup that will ask the user to enter a file name where they would like to save the current robot
 void showSaveRobotFilePopup();
+
+// This will show the settings for the robot editor, such as whether to show the end effector or to highlight the
+// selected component
+void showRobotEditorSettings();
 
 // This tool will show information about the robot, including its name, mass etc. and which robot components form part
 // of it
