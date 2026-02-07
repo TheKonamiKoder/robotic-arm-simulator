@@ -235,7 +235,19 @@ void showRobotComponentInformation()
         ImGui::Begin("Robot Component Information", &UIState::instance().showRobotComponentInformation);
             ImGui::Text("Component Name:");
             ImGui::SameLine();
-            if (ImGui::InputText("##RobotComponentNameTextInput", robotComponentNameBuffer, sizeof(robotComponentNameBuffer)))
+            if 
+            (
+                ImGui::InputText
+                (
+                    "##RobotComponentNameTextInput", 
+                    robotComponentNameBuffer, 
+                    sizeof(robotComponentNameBuffer),
+                    ImGuiInputTextFlags_CallbackCharFilter,
+                    // Closure will ensure that the user doesn't enter a | symbol as that will mean it won't be possible
+                    // to open the file again and read it properly as | is a delimiter character
+                    [] (ImGuiInputTextCallbackData* data) {return (data->EventChar == '|') ? 1 : 0;}
+                )
+            )
             {
                 UIState::instance().selectedComponent->name = robotComponentNameBuffer;    
                 UIState::instance().saved = false;
