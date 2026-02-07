@@ -243,7 +243,7 @@ void showRobotComponentInformation()
                     robotComponentNameBuffer, 
                     sizeof(robotComponentNameBuffer),
                     ImGuiInputTextFlags_CallbackCharFilter,
-                    // Closure will ensure that the user doesn't enter a | symbol as that will mean it won't be possible
+                    // Filter will ensure that the user doesn't enter a | symbol as that will mean it won't be possible
                     // to open the file again and read it properly as | is a delimiter character
                     [] (ImGuiInputTextCallbackData* data) {return (data->EventChar == '|') ? 1 : 0;}
                 )
