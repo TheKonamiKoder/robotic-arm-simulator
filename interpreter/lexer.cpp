@@ -33,7 +33,7 @@ namespace lexer
         {
             {"OR",          TokenType::Or},
             {"AND",         TokenType::And},
-            {"NOT",         TokenType::Not}
+            {"NOT",         TokenType::Not},
         };
 
         static const std::unordered_map<std::string, TokenType> punctuation
@@ -62,14 +62,23 @@ namespace lexer
         // Generates a string token
         if (word[0] == '"')
         {
-            return Token(TokenType::String, word, word.substr(1, word.length() - 2), lineNumber);
+            bool validString = word[word.length() - 1] == '"';
+            if (validString)
+            {
+                return Token(TokenType::String, word, Literal(word.substr(1, word.length() - 2)), lineNumber);
+            }
+            else
+            {
+                return Token(TokenType::Unidentified, word, Literal(std::monostate()), lineNumber);
+            }
+            
         }
         
         // Generates a number token
         if (std::strchr(numbers, word[0]))
         {
-            bool validNumber = false;
-            bool dotCount = 0;
+            bool validNumber = true;
+            int dotCount = 0;
             for (int i = 0; i < word.length(); i++)
             {
                 // Ensures there is only one decimal place in the number   
@@ -81,7 +90,7 @@ namespace lexer
                         validNumber = false;
                     }
                 }
-                else if (!strchr(numbers, word[0]))
+                else if (!strchr(numbers, word[i]))
                 {
                     validNumber = false;
                     break;
@@ -90,37 +99,53 @@ namespace lexer
             
             if (validNumber)
             {
-                return Token(TokenType::Number, word, std::stod(word), lineNumber);
+                return Token(TokenType::Number, word, Literal(std::stod(word)), lineNumber);
             }
             else
             {
-                return Token(TokenType::Unidentified, word, std::monostate(), lineNumber);
+                return Token(TokenType::Unidentified, word, Literal(std::monostate()), lineNumber);
             }
         }
 
         // Generates an operator token
         if (operators.find(word) != operators.end())
         {
-            return Token(operators.find(word)->second, word, std::monostate(), lineNumber);
+            return Token(operators.find(word)->second, word, Literal(std::monostate()), lineNumber);
         }
 
         // Generates a punctuation token
         if (punctuation.find(word) != punctuation.end())
         {
-            return Token(punctuation.find(word)->second, word, std::monostate(), lineNumber);
+            return Token(punctuation.find(word)->second, word, Literal(std::monostate()), lineNumber);
+        }
+
+        // Generates a logic token
+        if (logic.find(word) != logic.end())
+        {
+            return Token(logic.find(word)->second, word, Literal(std::monostate()), lineNumber);
+        }
+
+        // Generates True/False token
+        if (word == "TRUE")
+        {
+            return Token(TokenType::Boolean, word, Literal(true), lineNumber);
+        }
+        else if (word == "FALSE")
+        {
+            return Token(TokenType::Boolean, word, Literal(false), lineNumber);
         }
         
         // Generates a keyword token
         if (keywords.find(word) != keywords.end())
         {
-            return Token(keywords.find(word)->second, word, std::monostate(), lineNumber);
+            return Token(keywords.find(word)->second, word, Literal(std::monostate()), lineNumber);
         }
 
         // Generates an identifier token
         bool validIdentifier = true;
         for (int i = 0; i < word.length(); i++)
         {
-            if (!std::isalnum(word[i]))
+            if (!(std::isalnum(word[i]) || word[i] == '_'))
             {
                 validIdentifier = false;
                 break;
@@ -129,10 +154,10 @@ namespace lexer
 
         if (validIdentifier)
         {
-            return Token(TokenType::Identifier, word, word, lineNumber);
+            return Token(TokenType::Identifier, word, Literal(word), lineNumber);
         }
     
-        return Token(TokenType::Unidentified, word, std::monostate(), lineNumber);
+        return Token(TokenType::Unidentified, word, Literal(std::monostate()), lineNumber);
     }
 
     std::vector<Token> generateTokensFromLine(std::string& line, int lineNumber)

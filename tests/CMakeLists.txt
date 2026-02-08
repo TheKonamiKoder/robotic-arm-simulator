@@ -3,3 +3,4 @@ target_include_directories(test_utils PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 target_link_libraries(test_utils PUBLIC robot)
 
 add_subdirectory(robot_tests)
+add_subdirectory(interpreter_tests)
