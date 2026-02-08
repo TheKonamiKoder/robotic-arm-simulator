@@ -68,7 +68,34 @@ namespace lexer
         // Generates a number token
         if (std::strchr(numbers, word[0]))
         {
-            return Token(TokenType::Number, word, std::stod(word), lineNumber);
+            bool validNumber = false;
+            bool dotCount = 0;
+            for (int i = 0; i < word.length(); i++)
+            {
+                // Ensures there is only one decimal place in the number   
+                if (word[i] == '.')
+                {
+                    dotCount += 1;
+                    if (dotCount > 1)
+                    {
+                        validNumber = false;
+                    }
+                }
+                else if (!strchr(numbers, word[0]))
+                {
+                    validNumber = false;
+                    break;
+                }
+            }
+            
+            if (validNumber)
+            {
+                return Token(TokenType::Number, word, std::stod(word), lineNumber);
+            }
+            else
+            {
+                return Token(TokenType::Unidentified, word, std::monostate(), lineNumber);
+            }
         }
 
         // Generates an operator token
