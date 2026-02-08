@@ -16,13 +16,13 @@ enum class TokenType
     Minus,
     Divide,
     Multiply,
-    Assign,        // =
-    EqualEqual,    // ==
-    BangEqual,     // !=
-    Greater,       // >
-    GreaterEqual,  // >=
-    Less,          // <
-    LessEqual,     // <=
+    Assign,                 // =
+    Equals,                 // ==
+    NotEqual,               // !=
+    GreaterThan,            // >
+    GreaterThanOrEqual,     // >=
+    LessThan,               // <
+    LessThanOrEqual,        // <=
 
     // Logic
     Or,
@@ -50,7 +50,8 @@ enum class TokenType
     Then,
 
     // Special
-    EndOfFile,
+    Unidentified,
+    EndOfFile
 };
 
 
@@ -62,8 +63,8 @@ class Token
         TokenType type;
         std::string lexeme;     // Will store raw text
         Literal literal;        // Will store the value
-        int line;               // Will store line (for raising errors)
+        int lineNumber;         // Will store line number (for raising errors)
 
         Token() = default;
-        Token(TokenType type, std::string lexeme, Literal literal, int line);
+        Token(TokenType type, std::string lexeme, Literal literal, int lineNumber);
 };
