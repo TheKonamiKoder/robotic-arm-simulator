@@ -10,6 +10,8 @@
 
 int main() 
 {
+    int result = 0;
+
     std::cout << "Testing the linear actuator\n";
 
     // Aim to check how the extension of the linear actuator varies
@@ -21,23 +23,23 @@ int main()
         
         // Test valid input of translating by 5, which is within the acceptable range
         linearActuator.translate(5);
-        test("Displacement Within Range", isCloseEnough(linearActuator.getExtension(), 5));
+        result += result += test("Displacement Within Range", isCloseEnough(linearActuator.getExtension(), 5));
         
         // Test if it is possible to "add" the extension by translating it several times
         linearActuator.translate(1);
-        test("Modifying Extension", isCloseEnough(linearActuator.getExtension(), 6));
+        result += result += test("Modifying Extension", isCloseEnough(linearActuator.getExtension(), 6));
 
         // Test that the extension does not surpass max extension (10)
         linearActuator.translate(6);
-        test("Surpassing Maximum Extension", isCloseEnough(linearActuator.getExtension(), 10));
+        result += result += test("Surpassing Maximum Extension", isCloseEnough(linearActuator.getExtension(), 10));
 
         // Test that the extension can be reduced
         linearActuator.translate(-3);
-        test("Decreasing Extension", isCloseEnough(linearActuator.getExtension(), 7));
+        result += result += test("Decreasing Extension", isCloseEnough(linearActuator.getExtension(), 7));
 
         // Test that the extension won't go below 0
         linearActuator.translate(-10);
-        test("Extending Below 0", isCloseEnough(linearActuator.getExtension(), 0));
+        result += result += test("Extending Below 0", isCloseEnough(linearActuator.getExtension(), 0));
     }
 
     // Aim to check if the extension can cause connected robotic segments to change their position
@@ -51,11 +53,11 @@ int main()
 
         // Test increasing the extension
         linearActuator.translate(5);
-        test("Increasing Extension", isCloseEnough(segment.position.y, 20));
+        result += result += test("Increasing Extension", isCloseEnough(segment.position.y, 20));
 
         // Test decreasing the extension
         linearActuator.translate(-2);
-        test("Decreasing Extension", isCloseEnough(segment.position.y, 18));
+        result += result += test("Decreasing Extension", isCloseEnough(segment.position.y, 18));
     }
 
     // Aim to check if the extension can propogate through multiple connected components and change their position
@@ -74,15 +76,15 @@ int main()
 
         // Test increasing the extension and checking the effect on each segment
         linearActuator.translate(5);
-        test("Increasing Extension for First Segment", isCloseEnough(first.position.y, 20));
-        test("Increasing Extension for Second Segment", isCloseEnough(second.position.y, 30));
-        test("Increasing Extension for Third Segment", isCloseEnough(third.position.y, 40));
+        result += test("Increasing Extension for First Segment", isCloseEnough(first.position.y, 20));
+        result += test("Increasing Extension for Second Segment", isCloseEnough(second.position.y, 30));
+        result += test("Increasing Extension for Third Segment", isCloseEnough(third.position.y, 40));
 
         // Test decreasing the extension and checking the effect on each segment
         linearActuator.translate(-3);
-        test("Decreasing Extension for First Segment", isCloseEnough(first.position.y, 17));
-        test("Decreasing Extension for Second Segment", isCloseEnough(second.position.y, 27));
-        test("Decreasing Extension for Third Segment", isCloseEnough(third.position.y, 37));    
+        result += test("Decreasing Extension for First Segment", isCloseEnough(first.position.y, 17));
+        result += test("Decreasing Extension for Second Segment", isCloseEnough(second.position.y, 27));
+        result += test("Decreasing Extension for Third Segment", isCloseEnough(third.position.y, 37));    
     }
 
     // Aim to check if the extension method works for angles that are not 90 degrees
@@ -101,20 +103,22 @@ int main()
         
         // Test increasing the extension and checking the effect on each segment
         linearActuator.translate(4);
-        test("Increasing Extension for First Segment x", isCloseEnough(first.position.x, 9.5));
-        test("Increasing Extension for First Segment y", isCloseEnough(first.position.y, 9.5 * sqrt(3)));
-        test("Increasing Extension for Second Segment x", isCloseEnough(second.position.x, 14.5));
-        test("Increasing Extension for Second Segment y", isCloseEnough(second.position.y, 14.5 * sqrt(3)));
-        test("Increasing Extension for Third Segment x", isCloseEnough(third.position.x, 19.5));
-        test("Increasing Extension for Third Segment y", isCloseEnough(third.position.y, 19.5 * sqrt(3)));
+        result += test("Increasing Extension for First Segment x", isCloseEnough(first.position.x, 9.5));
+        result += test("Increasing Extension for First Segment y", isCloseEnough(first.position.y, 9.5 * sqrt(3)));
+        result += test("Increasing Extension for Second Segment x", isCloseEnough(second.position.x, 14.5));
+        result += test("Increasing Extension for Second Segment y", isCloseEnough(second.position.y, 14.5 * sqrt(3)));
+        result += test("Increasing Extension for Third Segment x", isCloseEnough(third.position.x, 19.5));
+        result += test("Increasing Extension for Third Segment y", isCloseEnough(third.position.y, 19.5 * sqrt(3)));
 
         // Test decreasing the extension and checking the effect on each segment
         linearActuator.translate(-2);
-        test("Decreasing Extension for First Segment x", isCloseEnough(first.position.x, 8.5));
-        test("Decreasing Extension for First Segment y", isCloseEnough(first.position.y, 8.5 * sqrt(3)));
-        test("Decreasing Extension for Second Segment x", isCloseEnough(second.position.x, 13.5));
-        test("Decreasing Extension for Second Segment y", isCloseEnough(second.position.y, 13.5 * sqrt(3)));
-        test("Decreasing Extension for Third Segment x", isCloseEnough(third.position.x, 18.5));
-        test("Decreasing Extension for Third Segment y", isCloseEnough(third.position.y, 18.5 * sqrt(3)));
+        result += test("Decreasing Extension for First Segment x", isCloseEnough(first.position.x, 8.5));
+        result += test("Decreasing Extension for First Segment y", isCloseEnough(first.position.y, 8.5 * sqrt(3)));
+        result += test("Decreasing Extension for Second Segment x", isCloseEnough(second.position.x, 13.5));
+        result += test("Decreasing Extension for Second Segment y", isCloseEnough(second.position.y, 13.5 * sqrt(3)));
+        result += test("Decreasing Extension for Third Segment x", isCloseEnough(third.position.x, 18.5));
+        result += test("Decreasing Extension for Third Segment y", isCloseEnough(third.position.y, 18.5 * sqrt(3)));
     }
+
+    return result;
 }   

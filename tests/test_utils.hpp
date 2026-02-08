@@ -15,4 +15,5 @@ bool isCloseEnough(const Coordinate& a, const Coordinate& b, double epsilon = DE
 
 // This function is responsible for running the tests
 // If the condition is true, then the test name will be printed as PASSED or else it will be printed as FAILED
-void test(const std::string& name, bool condition);
+// Additionally, test will return 0 if it passed and 1 if it failed
+int test(const std::string& name, bool condition);

@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 3.16)
 project(RobotSim LANGUAGES CXX)
 
+enable_testing()
+
 include(FetchContent)
 
 FetchContent_Declare(SFML
@@ -48,10 +50,4 @@ target_link_libraries(robot_sim
         robot_editor 
         SFML::Graphics
         ImGui-SFML::ImGui-SFML
-)
-
-add_custom_target(test
-    COMMAND linear_actuator_tests
-    COMMAND motor_tests
-    COMMAND robot_tests
 )

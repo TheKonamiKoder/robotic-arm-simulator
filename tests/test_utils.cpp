@@ -15,14 +15,16 @@ bool isCloseEnough(const Coordinate& a, const Coordinate& b, double epsilon)
     return (abs(a.x - b.x) < epsilon) && (abs(a.y - b.y) < epsilon);
 }
 
-void test(const std::string& name, bool condition)
+int test(const std::string& name, bool condition)
 {
     if (condition)
     {
         std::cout << "\033[32mTEST " << name << " PASSED\033[0m\n";
+        return 0;
     }
     else
     {
         std::cout << "\033[31mTEST " << name << " FAILED\033[0m\n";
+        return 1;
     }
 }

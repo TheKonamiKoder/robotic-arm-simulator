@@ -14,6 +14,8 @@
 
 int main()
 {
+    int result = 0;
+    
     std::cout << "Testing the robot\n";
 
     std::cout << "\nTesting attaching function of the robot\n";
@@ -24,7 +26,7 @@ int main()
         // Check if both the end and base pointers point to the first component
         Segment* base = new Segment(0, "Base", Coordinate(0, 0), M_PI_2, 5, 10, 5);
         robot.attachToEnd(base);
-        test
+        result += test
         (
             "Attaching Component to Empty Robot", 
             (robot.getBase() == base)                                   && 
@@ -37,7 +39,7 @@ int main()
         // End pointer should change but base pointer should remain the same
         Segment* end = new Segment(1, "End", Coordinate(0, 10), M_PI_2, 10, 10, 5);
         robot.attachToEnd(end);
-        test
+        result += test
         (
             "Attaching Component to End of Robot", 
             (robot.getBase() == base)                                   && 
@@ -50,7 +52,7 @@ int main()
         // Aim to test if attaching component between two components will work
         Segment* middle = new Segment(2, "Middle", Coordinate(0, 20), M_PI_2, 15, 10, 5);
         robot.attachTo(base, middle);
-        test
+        result += test
         (
             "Attaching Component in the Middle", 
             (robot.getBase()->front == middle)                          && 
@@ -64,7 +66,7 @@ int main()
         // Aim to test if using the attaching component to end specifically will cause the end pointer to update
         Segment* new_end = new Segment(3, "New End", Coordinate(0, 30), M_PI_2, 20, 10, 5);
         robot.attachTo(end, new_end);
-        test
+        result += test
         (
             "Attaching Component in the End Explicitly", 
             (robot.getEnd() == new_end)                                 && 
@@ -77,7 +79,7 @@ int main()
         // Aim to test if the base can be attached to a component
         Segment* new_base = new Segment(4, "New Base", Coordinate(0, 40), M_PI_2, 25, 10, 5);
         robot.attachBaseTo(new_base);
-        test
+        result += test
         (
             "Attaching Base to Component", 
             (robot.getBase() == new_base)                               && 
@@ -105,7 +107,7 @@ int main()
 
         // Aim to test if component can be removed from the end of robot successfully
         robot.remove(fifth);
-        test
+        result += test
         (
             "Removing Component from the End", 
             (robot.getEnd() == fourth)                                  && 
@@ -116,7 +118,7 @@ int main()
 
         // Aim to test if component can be removed from the middle of the robot successfully
         robot.remove(third);
-        test
+        result += test
         (
             "Removing Component from the Middle", 
             (second->front == fourth)                                   &&
@@ -127,7 +129,7 @@ int main()
 
         // Aim to test if component can be removed from the base of the robot successfully
         robot.remove(first);
-        test
+        result += test
         (
             "Removing Component from the Base", 
             (robot.getBase() == second)                                 &&
@@ -152,7 +154,7 @@ int main()
 	    std::getline(file, robot_name);
 	    robot_name.erase(robot_name.find_last_not_of(" \t\n\r\f\v") + 1);
         
-        test("Saving Empty Robot", robot_name == "Robot");
+        result += test("Saving Empty Robot", robot_name == "Robot");
         
         file.close();
 
@@ -168,7 +170,7 @@ int main()
             std::getline(file, line);   // This is the first component
             line.erase(line.find_last_not_of(" \t\n\r\f\v") + 1);
             
-            test("Saving Robot with 1 Component", line == "0|Segment|0|0|0|5|SEGMENT|10|5|");
+            result += test("Saving Robot with 1 Component", line == "0|Segment|0|0|0|5|SEGMENT|10|5|");
 
             file.close();
         }
@@ -192,13 +194,13 @@ int main()
             linear_actuator.erase(linear_actuator.find_last_not_of(" \t\n\r\f\v") + 1);
             motor.erase(motor.find_last_not_of(" \t\n\r\f\v") + 1);
 
-            test
+            result += test
             (
                 "Saving Robot with 3 Components - Linear Actuator", 
                 linear_actuator == "1|Linear Actuator|10|0|0|5|LINEAR ACTUATOR|0|10|10|5|"
             );
 
-            test
+            result += test
             (
                 "Saving Robot with 3 Components - Motor",
                 motor == "2|Motor|20|0|0|5|MOTOR|0|2|5|"
@@ -227,7 +229,7 @@ int main()
             segment_2.erase(segment_2.find_last_not_of(" \t\n\r\f\v") + 1);
             segment_3.erase(segment_3.find_last_not_of(" \t\n\r\f\v") + 1);
 
-            test
+            result += test
             (
                 "Saving Robot with 5 Components",
                 (segment_2 == "3|Segment 2|30|0|0|5|SEGMENT|10|5|") &&
@@ -246,7 +248,7 @@ int main()
             Robot robot(0);
             robot.loadFromFile(std::string(TEST_DATA_DIR) + "/robot_with_0_components.rbt");
 
-            test("Loading from File with 0 Components", robot.name == "Robot");
+            result += test("Loading from File with 0 Components", robot.name == "Robot");
         }
 
         // Test if robot can be loaded from file which has 1 component in it
@@ -255,7 +257,7 @@ int main()
             Robot robot(0);
             robot.loadFromFile(std::string(TEST_DATA_DIR) + "/robot_with_1_component.rbt");
 
-            test
+            result += test
             (
                 "Loading from File with 1 Component", 
                 *static_cast<Segment*>(robot.getBase()) == Segment(0, "Segment", Coordinate(0, 0), 0, 5, 10, 5)
@@ -269,14 +271,14 @@ int main()
             Robot robot(0);
             robot.loadFromFile(std::string(TEST_DATA_DIR) + "/robot_with_3_components.rbt");
 
-            test
+            result += test
             (
                 "Loading from File with 3 Components - Linear Actuator",
                 *static_cast<LinearActuator*>(robot.getBase()->front) == 
                 LinearActuator(1, "Linear Actuator", Coordinate(10, 0), 0, 5, 10, 10, 5)
             );
 
-            test
+            result += test
             (
                 "Loading from File with 3 Components - Motor",
                 *static_cast<Motor*>(robot.getEnd()) == Motor(2, "Motor", Coordinate(20, 0), 0, 5, 2, 5)
@@ -290,7 +292,7 @@ int main()
             Robot robot(0);
             robot.loadFromFile(std::string(TEST_DATA_DIR) + "/robot_with_5_components.rbt");
 
-            test
+            result += test
             (
                 "Loading from File with 5 Components",
                 (*static_cast<Segment*>(robot.getBase()->front->front->front) == 
@@ -306,9 +308,9 @@ int main()
         // This corresponds to test 23 from my design section
         Robot robot(0, "Robot");
         robot.attachToEnd(new LinearActuator(0, "Linear Actuator", Coordinate(0, 0), M_PI_2, 10, 10, 10, 5));
-        test("Caclulate Centre of Mass with 1 Component", isCloseEnough(robot.getCentreOfMass(), Coordinate(0, 0)));
+        result += test("Caclulate Centre of Mass with 1 Component", isCloseEnough(robot.getCentreOfMass(), Coordinate(0, 0)));
         static_cast<LinearActuator*>(robot.getEnd())->translate(5);
-        test
+        result += test
         (
             "Calculate Centre of Mass when Linear Actuator Moves", 
             isCloseEnough(robot.getCentreOfMass(), Coordinate(0, 2.5))
@@ -318,7 +320,7 @@ int main()
         // This corresponds to test 24 from my design section
         robot.attachToEnd(new Segment(1, "Segment 1", Coordinate(0, 15), M_PI_2, 20, 10, 5));
         robot.attachToEnd(new Segment(2, "Segment 2", Coordinate(0, 25), M_PI_2, 30, 10, 5));
-        test
+        result += test
         (
             "Calculate Centre of Mass with 3 Components", 
             isCloseEnough(robot.getCentreOfMass(), Coordinate(0, (215.0 / 12.0)))
@@ -333,7 +335,7 @@ int main()
             Robot robot(0, "Robot");
             robot.attachToEnd(new LinearActuator(0, "Linear Actuator", Coordinate(0, 0), M_PI_2, 5, 10, 10, 5));
             robot.moveTo(Coordinate(0, 10));
-            test
+            result += test
             (
                 "Inverse Kinematics with 1 Linear Actuator", 
                 isCloseEnough(robot.getEndEffectorPosition(), Coordinate(0, 10), 1)
@@ -347,7 +349,7 @@ int main()
             robot.attachToEnd(new LinearActuator(0, "Linear Actuator 1", Coordinate(0, 0), M_PI_2, 5, 10, 10, 5));
             robot.attachToEnd(new LinearActuator(1, "Linear Actuator 2", Coordinate(5, 5), 0, 5, 10, 10, 5));
             robot.moveTo(Coordinate(15, 10));
-            test
+            result += test
             (
                 "Inverse Kinematics with 2 Linear Actuators", 
                 isCloseEnough(robot.getEndEffectorPosition(), Coordinate(15, 10), 1)
@@ -360,7 +362,7 @@ int main()
             Robot robot(0, "Robot");
             robot.attachToEnd(new Motor(0, "Motor", Coordinate(0, 0), 0, 5, 2 * M_PI, 5));
             robot.moveTo(Coordinate(0, 5));
-            test
+            result += test
             (
                 "Inverse Kinematics with 1 Motor", 
                 isCloseEnough(robot.getEndEffectorPosition(), Coordinate(0, 5), 1)
@@ -376,7 +378,7 @@ int main()
             robot.attachToEnd(new Motor(2, "Motor 2", Coordinate(10, 0), 0, 5, 2 * M_PI, 1));
             robot.attachToEnd(new Segment(3, "Segment 2", Coordinate(15, 0), 0, 5, 8, 2));
             robot.moveTo(Coordinate(19 / 2, 19 * sqrt(3) / 2));
-            test
+            result += test
             (
                 "Inverse Kinematics with 2 Motors", 
                 isCloseEnough(robot.getEndEffectorPosition(), Coordinate(19 / 2, 19 * sqrt(3) / 2), 1)
@@ -389,21 +391,21 @@ int main()
             robot.attachToEnd(new Motor(0, "Motor", Coordinate(0, 0), 0, 5, M_PI_2, 5));
             
             robot.moveTo(Coordinate(5 / sqrt(2), 5 / sqrt(2)));
-            test
+            result += test
             (
                 "Inverse Kinematics with Bounded Motor - Within Bounds",
                 isCloseEnough(static_cast<Motor*>(robot.getBase())->getRotatedAngle(), M_PI_4)
             );
 
             robot.moveTo(Coordinate(-5 / sqrt(2), 5 / sqrt(2)));
-            test
+            result += test
             (
                 "Inverse Kinematics with Bounded Motor - Beyond Maximum Rotation",
                 isCloseEnough(static_cast<Motor*>(robot.getBase())->getRotatedAngle(), M_PI_2)
             );
 
             robot.moveTo(Coordinate(5 / sqrt(2), -5 / sqrt(2)));
-            test
+            result += test
             (
                 "Inverse Kinematics with Bounded Motor - Below 0",
                 isCloseEnough(static_cast<Motor*>(robot.getBase())->getRotatedAngle(), 0)
@@ -418,11 +420,13 @@ int main()
             robot.attachToEnd(new LinearActuator(1, "Linear Actuator", Coordinate(5, 0), 0, 5, 4, 8, 2));
 
             robot.moveTo(Coordinate(0, 12));
-            test
+            result += test
             (
                 "Inverse Kinematics with Motor and Linear Actuator", 
                 isCloseEnough(robot.getEndEffectorPosition(), Coordinate(0, 12), 1)
             ); 
         }
     }
+
+    return result;
 }

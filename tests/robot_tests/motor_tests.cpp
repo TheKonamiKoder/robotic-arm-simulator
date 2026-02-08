@@ -60,6 +60,8 @@ std::array<Coordinate, 4> getCorners(Segment segment)
 
 int main()
 {
+    int result = 0;
+
     std::cout << "Testing the motor\n";
 
     // Aim to test the motor by itself
@@ -73,34 +75,34 @@ int main()
         // Test rotating motor when it is in range
         motor.rotate(M_PI);
         std::cout << motor.getAngle() << '\n';
-        test("Angular Displacement Within Range", isCloseEnough(motor.getRotatedAngle(), M_PI));
+        result += test("Angular Displacement Within Range", isCloseEnough(motor.getRotatedAngle(), M_PI));
 
         // Test if it is possible to "add" the extension by rotating motor more than once
         motor.rotate(M_PI / 2);
-        test("Anticlockwise Rotation", isCloseEnough(motor.getRotatedAngle(), 1.5 * M_PI));
+        result += test("Anticlockwise Rotation", isCloseEnough(motor.getRotatedAngle(), 1.5 * M_PI));
 
         // Test if it is possible to rotate motor clockwise
         motor.rotate(-1.5 * M_PI);
-        test("Clockwise Rotation", isCloseEnough(motor.getRotatedAngle(), 0));
+        result += test("Clockwise Rotation", isCloseEnough(motor.getRotatedAngle(), 0));
 
         // Test normalisation of positive angles
         motor.rotate(5 * M_PI_2);
-        test("Normalisation of Positive Angles", isCloseEnough(motor.getRotatedAngle(), M_PI_2));
+        result += test("Normalisation of Positive Angles", isCloseEnough(motor.getRotatedAngle(), M_PI_2));
 
         // Test normalisation of negative angles
         motor.rotate(-M_PI);
-        test("Normalisation of Negative Angles", isCloseEnough(motor.getRotatedAngle(), 3 * M_PI_2));
+        result += test("Normalisation of Negative Angles", isCloseEnough(motor.getRotatedAngle(), 3 * M_PI_2));
 
         motor.rotate(M_PI_2);   // Reset motor to 0
         motor.maximumRotation = M_PI;
 
         // Test that motor's rotation does not exceed maximum rotation angle
         motor.rotate(1.5 * M_PI);
-        test("Surpassing Maximum Rotation", isCloseEnough(motor.getRotatedAngle(), M_PI));
+        result += test("Surpassing Maximum Rotation", isCloseEnough(motor.getRotatedAngle(), M_PI));
 
         // Test that motor's rotation does not decrease past 0
         motor.rotate(-1.5 * M_PI);
-        test("Rotating Past 0", isCloseEnough(motor.getRotatedAngle(), 0));
+        result += test("Rotating Past 0", isCloseEnough(motor.getRotatedAngle(), 0));
     }
 
     // Aim to check that the motor can accurately rotate connected segments
@@ -115,45 +117,45 @@ int main()
         // Test rotating motor by 90 degrees anticlockwise
         motor.rotate(M_PI_2);
         std::array<Coordinate, 4> corners = getCorners(segment);
-        test("Anticlockwise Rotation by 90 for Segment Position", isCloseEnough(segment.position, Coordinate(0, 10)));
-        test("Anticlockwise Rotation by 90 for Top Left Corner", isCloseEnough(corners[TOP_LEFT], Coordinate(-2.5, 15)));
-        test("Anticlockwise Rotation by 90 for Top Right Corner", isCloseEnough(corners[TOP_RIGHT], Coordinate(2.5, 15)));
-        test("Anticlockwise Rotation by 90 for Bottom Left Corner", isCloseEnough(corners[BOTTOM_LEFT], Coordinate(-2.5, 5)));
-        test("Anticlockwise Rotation by 90 for Bottom Right Corner", isCloseEnough(corners[BOTTOM_RIGHT], Coordinate(2.5, 5)));
+        result += test("Anticlockwise Rotation by 90 for Segment Position", isCloseEnough(segment.position, Coordinate(0, 10)));
+        result += test("Anticlockwise Rotation by 90 for Top Left Corner", isCloseEnough(corners[TOP_LEFT], Coordinate(-2.5, 15)));
+        result += test("Anticlockwise Rotation by 90 for Top Right Corner", isCloseEnough(corners[TOP_RIGHT], Coordinate(2.5, 15)));
+        result += test("Anticlockwise Rotation by 90 for Bottom Left Corner", isCloseEnough(corners[BOTTOM_LEFT], Coordinate(-2.5, 5)));
+        result += test("Anticlockwise Rotation by 90 for Bottom Right Corner", isCloseEnough(corners[BOTTOM_RIGHT], Coordinate(2.5, 5)));
 
         // Test rotating motor by 90 degrees clockwise
         motor.rotate(-M_PI_2);
         corners = getCorners(segment);
-        test("Clockwise Rotation by 90 for Segment Position", isCloseEnough(segment.position, Coordinate(10, 0)));
-        test("Clockwise Rotation by 90 for Top Left Corner", isCloseEnough(corners[TOP_LEFT], Coordinate(15, 2.5)));
-        test("Clockwise Rotation by 90 for Top Right Corner", isCloseEnough(corners[TOP_RIGHT], Coordinate(15, -2.5)));
-        test("Clockwise Rotation by 90 for Bottom Left Corner", isCloseEnough(corners[BOTTOM_LEFT], Coordinate(5, 2.5)));
-        test("Clockwise Rotation by 90 for Bottom Right Corner", isCloseEnough(corners[BOTTOM_RIGHT], Coordinate(5, -2.5)));
+        result += test("Clockwise Rotation by 90 for Segment Position", isCloseEnough(segment.position, Coordinate(10, 0)));
+        result += test("Clockwise Rotation by 90 for Top Left Corner", isCloseEnough(corners[TOP_LEFT], Coordinate(15, 2.5)));
+        result += test("Clockwise Rotation by 90 for Top Right Corner", isCloseEnough(corners[TOP_RIGHT], Coordinate(15, -2.5)));
+        result += test("Clockwise Rotation by 90 for Bottom Left Corner", isCloseEnough(corners[BOTTOM_LEFT], Coordinate(5, 2.5)));
+        result += test("Clockwise Rotation by 90 for Bottom Right Corner", isCloseEnough(corners[BOTTOM_RIGHT], Coordinate(5, -2.5)));
 
         // Test rotating motor by 60 degrees anticlockwise
         motor.rotate(M_PI / 3);
         corners = getCorners(segment);
-        test
+        result += test
         (
             "Anticlockwise Rotation by 60 for Segment Position", 
             isCloseEnough(segment.position, Coordinate(5, 5 * sqrt(3)))
         );
-        test
+        result += test
         (
             "Anticlockwise Rotation by 60 for Top Left Corner", 
             isCloseEnough(corners[TOP_LEFT], Coordinate(7.5 - (1.25 * sqrt(3)), 7.5 * sqrt(3) + 1.25))
         );
-        test
+        result += test
         (
             "Anticlockwise Rotation by 60 for Top Right Corner", 
             isCloseEnough(corners[TOP_RIGHT], Coordinate(7.5 + (1.25 * sqrt(3)), 7.5 * sqrt(3) - 1.25))
         );
-        test
+        result += test
         (
             "Anticlockwise Rotation by 60 for Bottom Left Corner", 
             isCloseEnough(corners[BOTTOM_LEFT], Coordinate(2.5 - (1.25 * sqrt(3)), 2.5 * sqrt(3) + 1.25))
         );
-        test
+        result += test
         (
             "Anticlockwise Rotation by 60 for Bottom Right Corner", 
             isCloseEnough(corners[BOTTOM_RIGHT], Coordinate(2.5 + (1.25 * sqrt(3)), 2.5 * sqrt(3) - 1.25))
@@ -178,20 +180,20 @@ int main()
         // Only need to check the position and 1 corner, as the last test should establish that all corners are in the 
         // correct position
         motor.rotate(M_PI_2);
-        test("Anticlockwise Rotation by 90 for First Segment Position", isCloseEnough(first.position, Coordinate(0, 10))); 
-        test
+        result += test("Anticlockwise Rotation by 90 for First Segment Position", isCloseEnough(first.position, Coordinate(0, 10))); 
+        result += test
         (
             "Anticlockwise Rotation by 90 for First Segment Top Left Corner", 
             isCloseEnough(getCorners(first)[TOP_LEFT], Coordinate(-2.5, 15))
         );
-        test("Anticlockwise Rotation by 90 for Second Segment Position", isCloseEnough(second.position, Coordinate(0, 20)));
-        test
+        result += test("Anticlockwise Rotation by 90 for Second Segment Position", isCloseEnough(second.position, Coordinate(0, 20)));
+        result += test
         (
             "Anticlockwise Rotation by 90 for Second Segment Top Left Corner", 
             isCloseEnough(getCorners(second)[TOP_LEFT], Coordinate(-2.5, 25))
         );
-        test("Anticlockwise Rotation by 90 for Third Segment Position", isCloseEnough(third.position, Coordinate(0, 30)));
-        test
+        result += test("Anticlockwise Rotation by 90 for Third Segment Position", isCloseEnough(third.position, Coordinate(0, 30)));
+        result += test
         (
             "Anticlockwise Rotation by 90 for Third Segment Top Left Corner", 
             isCloseEnough(getCorners(third)[TOP_LEFT], Coordinate(-2.5, 35))
@@ -199,23 +201,25 @@ int main()
         
         // Test rotating motor by 180 degrees clockwise
         motor.rotate(-M_PI);
-        test("Anticlockwise Rotation by 90 for First Segment Position", isCloseEnough(first.position, Coordinate(0, -10)));
-        test
+        result += test("Anticlockwise Rotation by 90 for First Segment Position", isCloseEnough(first.position, Coordinate(0, -10)));
+        result += test
         (
             "Anticlockwise Rotation by 90 for First Segment Top Left Corner", 
             isCloseEnough(getCorners(first)[TOP_LEFT], Coordinate(2.5, -15))
         );
-        test("Anticlockwise Rotation by 90 for Second Segment Position", isCloseEnough(second.position, Coordinate(0, -20)));
-        test
+        result += test("Anticlockwise Rotation by 90 for Second Segment Position", isCloseEnough(second.position, Coordinate(0, -20)));
+        result += test
         (
             "Anticlockwise Rotation by 90 for Second Segment Top Left Corner", 
             isCloseEnough(getCorners(second)[TOP_LEFT], Coordinate(2.5, -25))
         );
-        test("Anticlockwise Rotation by 90 for Third Segment Position", isCloseEnough(third.position, Coordinate(0, -30)));
-        test
+        result += test("Anticlockwise Rotation by 90 for Third Segment Position", isCloseEnough(third.position, Coordinate(0, -30)));
+        result += test
         (
             "Anticlockwise Rotation by 90 for Third Segment Top Left Corner", 
             isCloseEnough(getCorners(third)[TOP_LEFT], Coordinate(2.5, -35))
         );
     }
+
+    return result;
 }
