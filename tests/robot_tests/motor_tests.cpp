@@ -58,18 +58,26 @@ std::array<Coordinate, 4> getCorners(Segment segment)
     return corners;
 }
 
-int main()
+int main(int argc, char* argv[])
 {
     int result = 0;
 
-    std::cout << "Testing the motor\n";
+    bool runAllTests = (argc == 1);
+    std::string mode = runAllTests ? "" : argv[1];
+
+    if (runAllTests)
+    {
+        std::cout << "Testing the motor\n";
+    }
 
     // Aim to test the motor by itself
     // Check that the normalisation of the angle is working correctly
     // Check that the rotation does not exceed the maximum rotation range of the motor
     // This corresponds to tests 14 and 15 in the design document (in the Robot section)
-    std::cout << "\nTesting motor by itself\n";
+    if (runAllTests || mode == "--ByItself")
     {
+        std::cout << "\nTesting motor by itself\n";
+
         Motor motor(0, "Motor", Coordinate(0, 0), 0, 5, 2 * M_PI, 5);  // Creating motor with 360 degree rotation
 
         // Test rotating motor when it is in range
@@ -107,8 +115,10 @@ int main()
 
     // Aim to check that the motor can accurately rotate connected segments
     // This corresponds to test 16
-    std::cout << "\nTesting motor with one component attached\n";
+    if (runAllTests || mode == "--With1ComponentAttached")
     {
+        std::cout << "\nTesting motor with one component attached\n";
+
         Motor motor(0, "Motor", Coordinate(0, 0), 0, 5, 2 * M_PI, 5);  // Creating motor with 360 degree rotation
         Segment segment(1, "Segment", Coordinate(10, 0), 0, 5, 10, 5);
 
@@ -164,8 +174,10 @@ int main()
 
     // Aim to check that the rotation can be applied to all components attached to the front of the motor
     // This corresponds to test 17
-    std::cout << "\nTesting motor with 3 components attached\n";
+    if (runAllTests || mode == "--With3ComponentsAttached")
     {
+        std::cout << "\nTesting motor with 3 components attached\n";
+
         Motor motor(0, "Motor", Coordinate(0, 0), 0, 5, 2 * M_PI, 5);  // Creating motor with 360 degree rotation
         Segment first(1, "First", Coordinate(10, 0), 0, 5, 10, 5);
         Segment second(1, "Second", Coordinate(20, 0), 0, 5, 10, 5);

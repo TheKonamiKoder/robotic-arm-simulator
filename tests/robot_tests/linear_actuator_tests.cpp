@@ -8,17 +8,25 @@
 #include "linear_actuator.hpp"
 #include "segment.hpp"
 
-int main() 
+int main(int argc, char* argv[]) 
 {
     int result = 0;
 
-    std::cout << "Testing the linear actuator\n";
+    bool runAllTests = (argc == 1);
+    std::string mode = runAllTests ? "" : argv[1];
+
+    if (runAllTests)
+    {
+        std::cout << "Testing the linear actuator\n";
+    }
 
     // Aim to check how the extension of the linear actuator varies
     // Will check that the the actuator does not extend past its maximum value or compress into itself
     // This links to tests 9 and 10 within the design (for Robot section)
-    std::cout << "\nTesting linear actuator by itself\n";
+    if (runAllTests || mode == "--ByItself")
     {
+        std::cout << "\nTesting linear actuator by itself\n";
+        
         LinearActuator linearActuator(0, "Linear Actuator", Coordinate(0, 0), M_PI_2, 5, 10, 10, 5);
         
         // Test valid input of translating by 5, which is within the acceptable range
@@ -44,8 +52,10 @@ int main()
 
     // Aim to check if the extension can cause connected robotic segments to change their position
     // This corresponds to test 11
-    std::cout << "\nTesting linear actuator with 1 component attached\n";
+    if (runAllTests || mode == "--With1ComponentAttached")
     {
+        std::cout << "\nTesting linear actuator with 1 component attached\n";
+
         LinearActuator linearActuator(0, "Linear Actuator", Coordinate(0, 0), M_PI_2, 5, 10, 10, 5);
         Segment segment(1, "Segment", Coordinate(0, 15), M_PI_2, 5, 10, 5);
 
@@ -62,8 +72,10 @@ int main()
 
     // Aim to check if the extension can propogate through multiple connected components and change their position
     // This corresponds to test 12
-    std::cout << "\nTesting linear actuator with 3 components attached\n";
+    if (runAllTests || mode == "--With3ComponentsAttached")
     {
+        std::cout << "\nTesting linear actuator with 3 components attached\n";
+
         LinearActuator linearActuator(0, "Linear Actuator", Coordinate(0, 0), M_PI_2, 5, 10, 10, 5);
         Segment first(1, "First", Coordinate(0, 15), M_PI_2, 5, 10, 5);
         Segment second(1, "Second", Coordinate(0, 25), M_PI_2, 5, 10, 5);
@@ -89,8 +101,10 @@ int main()
 
     // Aim to check if the extension method works for angles that are not 90 degrees
     // This corresponds to test 13
-    std::cout << "\nTesting linear actuator at an angle\n";
+    if (runAllTests || mode == "--AtAnAngle")
     {
+        std::cout << "\nTesting linear actuator at an angle\n";
+
         LinearActuator linearActuator(0, "Linear Actuator", Coordinate(2.5, 2.5 * sqrt(3)), M_PI / 3, 5, 10, 10, 5);
         Segment first(1, "First", Coordinate(7.5, 7.5 * sqrt(3)), M_PI_2, 5, 10, 5);
         Segment second(1, "Second", Coordinate(12.5, 12.5 * sqrt(3)), M_PI_2, 5, 10, 5);

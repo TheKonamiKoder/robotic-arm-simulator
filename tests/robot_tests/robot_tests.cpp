@@ -12,14 +12,22 @@
 #include "linear_actuator.hpp"
 #include "robot.hpp"
 
-int main()
+int main(int argc, char* argv[])
 {
     int result = 0;
-    
-    std::cout << "Testing the robot\n";
 
-    std::cout << "\nTesting attaching function of the robot\n";
+    bool runAllTests = (argc == 1);
+    std::string mode = runAllTests ? "" : argv[1];
+    
+    if (runAllTests)
     {
+        std::cout << "Testing the robot\n";
+    }
+
+    if (runAllTests || mode == "--Attach")
+    {
+        std::cout << "\nTesting attaching function of the robot\n";
+
         Robot robot = Robot(0, "Robot");
 
         // Aim to see if the robot will attach the first component to the base
@@ -90,8 +98,10 @@ int main()
         );
     }
 
-    std::cout << "\nTesting the removing function of the robot\n";
+    if (runAllTests || mode == "--Remove")
     {
+        std::cout << "\nTesting the removing function of the robot\n";
+
         Robot robot(0, "Robot");
         Segment* first = new Segment(1, "First", Coordinate(0, 10), M_PI_2, 5, 10, 5);
         Segment* second = new Segment(2, "Second", Coordinate(0, 20), M_PI_2, 10, 10, 5);
@@ -139,8 +149,9 @@ int main()
         );
     }
     
-    std::cout << "\nTesting save to file function of the robot\n";
+    if (runAllTests || "--SaveToFile")
     {
+        std::cout << "\nTesting save to file function of the robot\n";
 
         std::string filename = std::string(TEST_DATA_DIR) + "/save_file.rbt";
         Robot robot = Robot(0, "Robot");
@@ -240,8 +251,9 @@ int main()
         }
     }
  
-    std::cout << "\nTesting loading from file function of robot\n";
+    if (runAllTests || mode == "--LoadFromFile")   
     {
+        std::cout << "\nTesting loading from file function of robot\n";
         // Test if robot can load from file which has 0 components in it
         // This corresponds to test 5 from the design section
         {
@@ -302,8 +314,10 @@ int main()
         }
     }
 
-    std::cout << "\nTesting the Centre of Mass\n";
+    if (runAllTests || mode == "--GetCentreOfMass")
     {
+        std::cout << "\nTesting the Centre of Mass\n";
+
         // Aim to test centre of mass with one component
         // This corresponds to test 23 from my design section
         Robot robot(0, "Robot");
@@ -327,8 +341,10 @@ int main()
         );
     }
 
-    std::cout << "\nTesting Inverse Kinematics\n";
+    if (runAllTests || mode == "--MoveTo")
     {
+        std::cout << "\nTesting Inverse Kinematics\n";
+
         // Test inverse kinematics algorithm with only 1 linear actuator
         // This corresponds to test 19 in my design section
         {
