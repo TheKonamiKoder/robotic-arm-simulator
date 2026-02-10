@@ -1,5 +1,6 @@
 #pragma once
 
+#include <ostream>
 #include <string>
 #include <variant>
 
@@ -68,3 +69,6 @@ class Token
         Token() = default;
         Token(TokenType type, std::string lexeme, Literal literal, int lineNumber);
 };
+
+// This is for pretty printing the tokens, which is useful in debugging
+std::ostream& operator<<(std::ostream& os, TokenType type);

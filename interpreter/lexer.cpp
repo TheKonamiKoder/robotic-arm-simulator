@@ -1,6 +1,7 @@
 #include "lexer.hpp"
 
 #include <cctype>
+#include <iostream>
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -191,12 +192,16 @@ namespace lexer
                 }
                 word = "";
                 word += c;
+
+                partOfStringLiteral = true;
             }
             else if (c == '"' && partOfStringLiteral)
             {
                 word += c;
                 tokens.push_back(generateTokenFromWord(word, lineNumber));
                 word = "";
+
+                partOfStringLiteral = false;
             }
             else if (c != '"' && partOfStringLiteral)
             {
@@ -215,6 +220,8 @@ namespace lexer
                     }
                     word = "";
                     word += c;
+
+                    partOfOperator = true;
                 }
                 else if (std::strchr(operators, c) && partOfOperator)
                 {
