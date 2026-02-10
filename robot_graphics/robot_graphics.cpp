@@ -2,6 +2,7 @@
 
 #include <array>
 #include <cmath>
+#include <iostream>
 
 #include <SFML/Graphics.hpp>
 #include <imgui-SFML.h>
@@ -177,13 +178,10 @@ void drawLinearActuator(const LinearActuator& linearActuator, sf::RenderWindow& 
 
     if (selected)
     {
-        sf::ConvexShape selectConvex;
-        selectConvex.setPointCount(4);
-        selectConvex.setFillColor(sf::Color::Transparent);
-        selectConvex.setOutlineColor(sf::Color::Blue);
-        selectConvex.setOutlineThickness(2);
+        baseConvex.setOutlineThickness(2);
+        baseConvex.setOutlineColor(sf::Color::Blue);
     }
-
+    
     window.draw(baseConvex);
 }
 
