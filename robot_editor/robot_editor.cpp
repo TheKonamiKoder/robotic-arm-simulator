@@ -416,6 +416,17 @@ void showLinearActuatorInformation()
         UIState::instance().saved = false;
     }
 
+    // This is for demo only
+
+    ImGui::Text("Extension: ");
+    ImGui::SameLine();
+
+    float extension = linearActuator->getExtension();
+    if (ImGui::SliderFloat("##LinearActuatorExtensionFloatSlider", &extension, 0, linearActuator->maximumExtension))
+    {
+        linearActuator->translate(extension - linearActuator->getExtension());
+    }
+
     ImGui::Text("Width:");
     ImGui::SameLine();
 

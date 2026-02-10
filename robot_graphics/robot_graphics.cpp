@@ -177,8 +177,11 @@ void drawLinearActuator(const LinearActuator& linearActuator, sf::RenderWindow& 
 
     if (selected)
     {
-        baseConvex.setOutlineColor(sf::Color::Blue);
-        baseConvex.setOutlineThickness(2);
+        sf::ConvexShape selectConvex;
+        selectConvex.setPointCount(4);
+        selectConvex.setFillColor(sf::Color::Transparent);
+        selectConvex.setOutlineColor(sf::Color::Blue);
+        selectConvex.setOutlineThickness(2);
     }
 
     window.draw(baseConvex);

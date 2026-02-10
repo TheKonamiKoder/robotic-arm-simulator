@@ -44,9 +44,6 @@ void LinearActuator::translate(double displacement)
 		this->extension = newExtension;
 	}
 	
-	// Changing the characteristics of the linear actuator
-	this->height += this->extension - pastExtension;
-	
 	double dx = (this->extension - pastExtension) * cos(this->angle);
 	double dy = (this->extension - pastExtension) * sin(this->angle);
 	
