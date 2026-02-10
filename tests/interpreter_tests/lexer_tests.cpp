@@ -13,16 +13,21 @@ bool testWord(const std::string& word, const TokenType expectedType, const Liter
     return (token.type == expectedType) && (token.literal == literal);
 }
 
-int main()
+int main(int argc, char* argv[])
 {
     int result = 0;
+
+    bool runAllTests = (argc == 1);
+    std::string mode = (runAllTests) ? "" : argv[1];
 
     std::cout << "Testing the lexer\n";
 
     // Aim to check that tokens can be generated from words
     // This will involve passing a selection of tokens and checking that the correct output is given
-    std::cout << "\nTesting generate tokens from word function\n";
+    if (runAllTests || mode == "--GenerateTokenFromWord")
     {
+        std::cout << "\nTesting generate tokens from word function\n";
+
         // Pass keywords to lexer
         result += test("Passing keyword VAR to lexer", testWord("VAR", TokenType::Var));
         result += test("Passing keyword IF to lexer", testWord("IF", TokenType::If));
