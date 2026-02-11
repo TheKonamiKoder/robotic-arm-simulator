@@ -11,14 +11,30 @@
 // This is a function to help check the expected value of the generateTokenFromWord function
 bool checkWord(const std::string& word, const TokenType expectedType, const Literal& literal = Literal(std::monostate()))
 {
-    Token token = lexer::generateTokenFromWord(word);
+    Token token = generateTokenFromWord(word);
     return (token.type == expectedType) && (token.literal == literal);
 }
 
 // This is a function to help check the expected value of the generateTokensFromLine function
 bool checkLine(std::string line, const std::vector<TokenType>& expectedTypes)
 {
-    std::vector<Token> tokens = lexer::generateTokensFromLine(line);
+    std::vector<Token> tokens = generateTokensFromLine(line);
+
+    for (int i = 0; i < tokens.size(); i++)
+    {
+        if (tokens[i].type != expectedTypes[i])
+        {
+            return false;
+        }
+    }
+    
+    return true;
+}
+
+// This is a function to help check the expected value of the generateTokensFromFile function
+bool checkFile(const std::string& filename, const std::vector<TokenType>& expectedTypes)
+{
+    std::vector <Token> tokens = generateTokensFromFile(filename);
 
     for (int i = 0; i < tokens.size(); i++)
     {
@@ -38,7 +54,10 @@ int main(int argc, char* argv[])
     bool runAllTests = (argc == 1);
     std::string mode = (runAllTests) ? "" : argv[1];
 
-    std::cout << "Testing the lexer\n";
+    if (runAllTests)
+    {
+        std::cout << "Testing the lexer\n";
+    }
 
     // Aim to check that tokens can be generated from words
     // This will involve passing a selection of tokens and checking that the correct output is given
@@ -154,7 +173,30 @@ int main(int argc, char* argv[])
             "Passing \"ON 'test event' END\" to lexer",
             checkLine(std::string("ON \"test event\""), {TokenType::On, TokenType::String})
         );
+    }
 
+    // Aim to check that tokens can be generated form file
+    // This corresponds to test 7 in my design document
+    if (runAllTests || mode == "--GenerateTokensFromFile")
+    {
+        std::cout << "\nTesting generate tokens from file function\n";
+
+        // Should expect no tokens to be generated
+        result += test("Passing empty file to lexer", checkFile(std::string(TEST_DATA_DIR) + "/empty_file.rpl", {}));
+
+        result += test
+        (
+            "Passing file to lexer", 
+            checkFile
+            (
+                std::string(TEST_DATA_DIR) + "/test_file.rpl", 
+                {
+                    TokenType::On, TokenType::String, 
+                        TokenType::Rotate, TokenType::String, TokenType::By, TokenType::Number, 
+                    TokenType::Endon
+                }
+            )
+        );
     }
     
     return result;

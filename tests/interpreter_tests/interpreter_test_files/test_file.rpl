@@ -1,0 +1,3 @@
+ON "Move Up"
+    ROTATE "Motor 1" BY 30
+ENDON
