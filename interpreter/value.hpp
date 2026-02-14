@@ -40,4 +40,6 @@ public:
 
     // This will return the name of the value's type
     std::string getTypeName() const;
+
+    friend bool operator==(const Value& lhs, const Value& rhs);
 };

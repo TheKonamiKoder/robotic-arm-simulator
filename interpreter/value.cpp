@@ -6,15 +6,14 @@ std::string Value::getTypeName(Value::Type type)
     {
     case Value::Type::Number:
         return "Number";
-        break;
     case Value::Type::String:
         return "String";
-        break;
     case Value::Type::Boolean:
         return "Boolean";
-        break;
+    case Value::Type::None:
+        return "String";
     default:
-        break;
+        return "Unknown";
     }
 }
 
@@ -47,4 +46,26 @@ Value::Type Value::getType() const
 std::string Value::getTypeName() const
 {
     return Value::getTypeName(this->getType());
+}
+
+bool operator==(const Value& lhs, const Value& rhs)
+{
+    if (lhs.type != rhs.type)
+    {
+        return false;
+    }
+    
+    switch (lhs.type)
+    {
+    case Value::Type::Number:
+        return lhs.numberValue == rhs.numberValue;
+    case Value::Type::String:
+        return lhs.stringValue == rhs.stringValue;
+    case Value::Type::Boolean:
+        return lhs.booleanValue == rhs.booleanValue;
+    case Value::Type::None:
+        return true;
+    default:        // If the type is not any
+        return false;
+    }
 }

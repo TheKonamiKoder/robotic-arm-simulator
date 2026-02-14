@@ -1,6 +1,7 @@
 #pragma once
 
 #include "environment.hpp"
+#include "source_location.hpp"
 #include "value.hpp"
 #include "visitor.hpp"
 

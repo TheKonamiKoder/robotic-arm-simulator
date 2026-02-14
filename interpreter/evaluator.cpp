@@ -19,11 +19,11 @@ void Evaluator::visit(NumberLiteralExpression& expression)
 void Evaluator::visit(AdditionExpression& expression)
 {
     expression.left->accept(*this);
-    throwErrorIfNotNumber(expression.left->sourceLocation);
+    this->throwErrorIfNotNumber(expression.left->sourceLocation);
     Number leftValue = this->result.asNumber();
 
     expression.right->accept(*this);
-    throwErrorIfNotNumber(expression.right->sourceLocation);
+    this->throwErrorIfNotNumber(expression.right->sourceLocation);
     Number rightValue = this->result.asNumber();
 
     this->result = leftValue + rightValue;
@@ -32,11 +32,11 @@ void Evaluator::visit(AdditionExpression& expression)
 void Evaluator::visit(SubtractionExpression& expression)
 {
     expression.left->accept(*this);
-    throwErrorIfNotNumber(expression.left->sourceLocation);
+    this->throwErrorIfNotNumber(expression.left->sourceLocation);
     Number leftValue = this->result.asNumber();
 
     expression.right->accept(*this);
-    throwErrorIfNotNumber(expression.right->sourceLocation);
+    this->throwErrorIfNotNumber(expression.right->sourceLocation);
     Number rightValue = this->result.asNumber();
 
     this->result = leftValue - rightValue;
@@ -45,11 +45,11 @@ void Evaluator::visit(SubtractionExpression& expression)
 void Evaluator::visit(MultiplicationExpression& expression)
 {
     expression.left->accept(*this);
-    throwErrorIfNotNumber(expression.left->sourceLocation);
+    this->throwErrorIfNotNumber(expression.left->sourceLocation);
     Number leftValue = this->result.asNumber();
 
     expression.right->accept(*this);
-    throwErrorIfNotNumber(expression.right->sourceLocation);
+    this->throwErrorIfNotNumber(expression.right->sourceLocation);
     Number rightValue = this->result.asNumber();
 
     this->result = leftValue * rightValue;
@@ -58,11 +58,11 @@ void Evaluator::visit(MultiplicationExpression& expression)
 void Evaluator::visit(DivisionExpression& expression)
 {
     expression.left->accept(*this);
-    throwErrorIfNotNumber(expression.left->sourceLocation);
+    this->throwErrorIfNotNumber(expression.left->sourceLocation);
     Number leftValue = this->result.asNumber();
 
     expression.right->accept(*this);
-    throwErrorIfNotNumber(expression.right->sourceLocation);
+    this->throwErrorIfNotNumber(expression.right->sourceLocation);
     Number rightValue = this->result.asNumber();
 
     if (rightValue == 0)
@@ -76,7 +76,7 @@ void Evaluator::visit(DivisionExpression& expression)
 void Evaluator::visit(UnaryMinusExpression& expression)
 {
     expression.operand->accept(*this);
-    throwErrorIfNotNumber(expression.operand->sourceLocation);
+    this->throwErrorIfNotNumber(expression.operand->sourceLocation);
     
     this->result = -this->result.asNumber();
 }
@@ -84,7 +84,7 @@ void Evaluator::visit(UnaryMinusExpression& expression)
 void Evaluator::visit(UnaryPlusExpression& expression)
 {
     expression.operand->accept(*this);
-    throwErrorIfNotNumber(expression.operand->sourceLocation);
+    this->throwErrorIfNotNumber(expression.operand->sourceLocation);
 }
 
 void Evaluator::visit(VariableExpression& expression)

@@ -8,8 +8,7 @@
 
 #include "token.hpp"
 
-
-Token generateTokenFromWord(const std::string& word, int lineNumber)
+Token generateTokenFromWord(const std::string& word, SourceLocation sourceLocation)
 {
     static const char* numbers = "0123456789";
 
@@ -64,11 +63,11 @@ Token generateTokenFromWord(const std::string& word, int lineNumber)
         bool validString = word[word.length() - 1] == '"';
         if (validString)
         {
-            return Token(TokenType::String, word, Literal(word.substr(1, word.length() - 2)), lineNumber);
+            return Token(TokenType::String, word, word.substr(1, word.length() - 2), sourceLocation);
         }
         else
         {
-            return Token(TokenType::Unidentified, word, Literal(std::monostate()), lineNumber);
+            return Token(TokenType::Unknown, word, Value(), sourceLocation);
         }
         
     }
@@ -98,46 +97,46 @@ Token generateTokenFromWord(const std::string& word, int lineNumber)
         
         if (validNumber)
         {
-            return Token(TokenType::Number, word, Literal(std::stod(word)), lineNumber);
+            return Token(TokenType::Number, word, std::stod(word), sourceLocation);
         }
         else
         {
-            return Token(TokenType::Unidentified, word, Literal(std::monostate()), lineNumber);
+            return Token(TokenType::Unknown, word, Value(), sourceLocation);
         }
     }
 
     // Generates an operator token
     if (operators.find(word) != operators.end())
     {
-        return Token(operators.find(word)->second, word, Literal(std::monostate()), lineNumber);
+        return Token(operators.find(word)->second, word, Value(), sourceLocation);
     }
 
     // Generates a punctuation token
     if (punctuation.find(word) != punctuation.end())
     {
-        return Token(punctuation.find(word)->second, word, Literal(std::monostate()), lineNumber);
+        return Token(punctuation.find(word)->second, word, Value(), sourceLocation);
     }
 
     // Generates a logic token
     if (logic.find(word) != logic.end())
     {
-        return Token(logic.find(word)->second, word, Literal(std::monostate()), lineNumber);
+        return Token(logic.find(word)->second, word, Value(), sourceLocation);
     }
 
     // Generates True/False token
     if (word == "TRUE")
     {
-        return Token(TokenType::Boolean, word, Literal(true), lineNumber);
+        return Token(TokenType::Boolean, word, true, sourceLocation);
     }
     else if (word == "FALSE")
     {
-        return Token(TokenType::Boolean, word, Literal(false), lineNumber);
+        return Token(TokenType::Boolean, word, false, sourceLocation);
     }
     
     // Generates a keyword token
     if (keywords.find(word) != keywords.end())
     {
-        return Token(keywords.find(word)->second, word, Literal(std::monostate()), lineNumber);
+        return Token(keywords.find(word)->second, word, Value(), sourceLocation);
     }
 
     // Generates an identifier token
@@ -153,23 +152,19 @@ Token generateTokenFromWord(const std::string& word, int lineNumber)
 
     if (validIdentifier)
     {
-        return Token(TokenType::Identifier, word, Literal(word), lineNumber);
+        return Token(TokenType::Identifier, word, word, sourceLocation);
     }
 
-    return Token(TokenType::Unidentified, word, Literal(std::monostate()), lineNumber);
+    return Token(TokenType::Unknown, word, Value(), sourceLocation);
 }
 
-std::vector<Token> generateTokensFromLine(std::string& line, int lineNumber)
+std::vector<Token> generateTokensFromLine(const std::string& line, int lineNumber)
 {
     static const char* whitespace = " \t\n\r\f\v";
     static const char* operators = "+-*/=!><";
     static const char* punctuation = "()";
 
     std::vector<Token> tokens;
-
-    // Trim the line of any leading and trailing whitespace
-    line.erase(line.find_last_not_of(whitespace) + 1);
-    line.erase(0, line.find_first_not_of(whitespace));
 
     std::string word = "";
     char c;
@@ -186,7 +181,7 @@ std::vector<Token> generateTokensFromLine(std::string& line, int lineNumber)
         {
             if (word.length() > 0)
             {
-                tokens.push_back(generateTokenFromWord(word, lineNumber));
+                tokens.push_back(generateTokenFromWord(word, {lineNumber, i}));
             }
             word = "";
             word += c;
@@ -196,7 +191,7 @@ std::vector<Token> generateTokensFromLine(std::string& line, int lineNumber)
         else if (c == '"' && partOfStringLiteral)
         {
             word += c;
-            tokens.push_back(generateTokenFromWord(word, lineNumber));
+            tokens.push_back(generateTokenFromWord(word, {lineNumber, i}));
             word = "";
 
             partOfStringLiteral = false;
@@ -214,7 +209,7 @@ std::vector<Token> generateTokensFromLine(std::string& line, int lineNumber)
             {
                 if (word.length() > 0)
                 {
-                    tokens.push_back(generateTokenFromWord(word, lineNumber));
+                    tokens.push_back(generateTokenFromWord(word, {lineNumber, i}));
                 }
                 word = "";
                 word += c;
@@ -231,17 +226,17 @@ std::vector<Token> generateTokensFromLine(std::string& line, int lineNumber)
                 while (word.length() > 0)
                 {
                     // Try to find a two character operator first, such as ==
-                    Token token = generateTokenFromWord(word.substr(0, 2), lineNumber);
+                    Token token = generateTokenFromWord(word.substr(0, 2), {lineNumber, i});
                     
                     // If it is not an operator, the token type returned would be an identifier
-                    if (token.type != TokenType::Unidentified)
+                    if (token.type != TokenType::Unknown)
                     {
                         tokens.push_back(token);
                         word.erase(0, 2);
                     }
                     else
                     {
-                        token = generateTokenFromWord(std::string(1, word[0]), lineNumber);
+                        token = generateTokenFromWord(std::string(1, word[0]), {lineNumber, i});
                         tokens.push_back(token);
                         word.erase(0, 1);
                     }
@@ -258,19 +253,19 @@ std::vector<Token> generateTokensFromLine(std::string& line, int lineNumber)
                     // Push back the word up to now
                     if (word.length() > 0)
                     {
-                        tokens.push_back(generateTokenFromWord(word, lineNumber));
+                        tokens.push_back(generateTokenFromWord(word, {lineNumber, i}));
                     }
 
                     // Punctuation is its own word
                     // This should help solve issues such as (a), and split into 3 tokens instead of identifier
-                    tokens.push_back(generateTokenFromWord(std::string(1, c), lineNumber));
+                    tokens.push_back(generateTokenFromWord(std::string(1, c), {lineNumber, i}));
                     word = "";
                 }
                 else if (std::strchr(whitespace, c))
                 {
                     if (word.length() > 0)
                     {
-                        tokens.push_back(generateTokenFromWord(word, lineNumber));
+                        tokens.push_back(generateTokenFromWord(word, {lineNumber, i}));
                     }
                     
                     word = "";

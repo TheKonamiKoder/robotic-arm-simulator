@@ -2,6 +2,8 @@ add_library(interpreter
     error.cpp
     evaluator.cpp
     lexer.cpp
+    source_location.cpp
+    symbol_table.cpp
     token.cpp
     value.cpp
 )
