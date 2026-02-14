@@ -9,7 +9,7 @@
 #include "lexer.hpp"
 
 // This is a function to help check the expected value of the generateTokenFromWord function
-bool checkWord(const std::string& word, const TokenType expectedType, const Literal& literal = Literal(std::monostate()))
+bool checkWord(const std::string& word, const TokenType expectedType, const Value& literal = Value())
 {
     Token token = generateTokenFromWord(word);
     return (token.type == expectedType) && (token.literal == literal);
@@ -71,11 +71,11 @@ int main(int argc, char* argv[])
         result += test("Passing keyword ROTATE to lexer", checkWord("ROTATE", TokenType::Rotate));
 
         // Pass numbers to lexer
-        result += test("Passing 12 to lexer", checkWord("12", TokenType::Number, Literal(12.0)));
-        result += test("Passing 0.5 to lexer", checkWord("0.5", TokenType::Number, Literal(0.5)));
+        result += test("Passing 12 to lexer", checkWord("12", TokenType::Number, 12.0));
+        result += test("Passing 0.5 to lexer", checkWord("0.5", TokenType::Number, 0.5));
 
         // Pass strings to lexer
-        result += test("Passing \"Hello World!\" to lexer", checkWord("\"Hello World!\"", TokenType::String, Literal(std::string("Hello World!"))));
+        result += test("Passing \"Hello World!\" to lexer", checkWord("\"Hello World!\"", TokenType::String, std::string("Hello World!")));
         // Pass operators to lexer
         result += test("Passing == to lexer", checkWord(">=", TokenType::GreaterThanOrEqual));
         result += test("Passing == to lexer", checkWord("==", TokenType::Equals));
@@ -83,17 +83,17 @@ int main(int argc, char* argv[])
         result += test("Passing = to lexer", checkWord("=", TokenType::Assign));
 
         // Pass logic to lexer
-        result += test("Passing TRUE to lexer", checkWord("TRUE", TokenType::Boolean, Literal(true)));
-        result += test("Passing FALSE to lexer", checkWord("FALSE", TokenType::Boolean, Literal(false)));
+        result += test("Passing TRUE to lexer", checkWord("TRUE", TokenType::Boolean, true));
+        result += test("Passing FALSE to lexer", checkWord("FALSE", TokenType::Boolean, false));
         result += test("Passing AND to lexer", checkWord("AND", TokenType::And));
 
         // Pass identifiers to lexer
-        result += test("Passing variable to lexer", checkWord("variable", TokenType::Identifier, Literal(std::string("variable"))));
+        result += test("Passing variable to lexer", checkWord("variable", TokenType::Identifier, std::string("variable")));
 
         // Pass errors to lexer
-        result += test("Passing \"Open String to lexer", checkWord("\"Open String", TokenType::Unidentified));
-        result += test("Passing 1.2.1 to lexer", checkWord("1.2.1", TokenType::Unidentified));
-        result += test("Passing variable.with.dots to lexer", checkWord("variable.with.dots", TokenType::Unidentified));
+        result += test("Passing \"Open String to lexer", checkWord("\"Open String", TokenType::Unknown));
+        result += test("Passing 1.2.1 to lexer", checkWord("1.2.1", TokenType::Unknown));
+        result += test("Passing variable.with.dots to lexer", checkWord("variable.with.dots", TokenType::Unknown));
     }
 
     // Aim to check that tokens can be generated from line
