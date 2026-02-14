@@ -1,11 +1,16 @@
 #pragma once
 
+#include "environment.hpp"
+#include "value.hpp"
 #include "visitor.hpp"
 
 class Evaluator : public Visitor
 {
+private:
+    void throwErrorIfNotNumber(SourceLocation sourceLocation);
 public:
-    double result = 0;
+    Environment& environment;
+    Value result;
 
     void visit(NumberLiteralExpression& expression) override;
 
@@ -16,4 +21,6 @@ public:
 
     void visit(UnaryMinusExpression& expression) override;
     void visit(UnaryPlusExpression& expression) override;
+
+    void visit(VariableExpression& expression) override;
 };

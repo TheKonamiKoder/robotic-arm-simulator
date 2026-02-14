@@ -1,25 +1,19 @@
 #pragma once
 
-class NumberLiteralExpression;
-class AdditionExpression;
-class SubtractionExpression;
-class MultiplicationExpression;
-class DivisionExpression;
-class UnaryMinusExpression;
-class UnaryPlusExpression;
+#include "ast_node_list.hpp"
+
+// Forward declare the node types
+#define X(Concrete, Base, ExtraFields) class Concrete;
+    AST_CONCRETE_NODE_LIST
+#undef X
 
 class Visitor
 {   
 public:
     virtual ~Visitor() = default;
 
-    virtual void visit(NumberLiteralExpression& expression) = 0;
-
-    virtual void visit(AdditionExpression& expression) = 0;
-    virtual void visit(SubtractionExpression& expression) = 0;
-    virtual void visit(MultiplicationExpression& expression) = 0;
-    virtual void visit(DivisionExpression& expression) = 0;
-
-    virtual void visit(UnaryMinusExpression& expression) = 0;
-    virtual void visit(UnaryPlusExpression& expression) = 0;
+// Only concrete classes need to be visited
+#define X(Concrete, Base, ExtraFields) virtual void visit(Concrete&) = 0;
+    AST_CONCRETE_NODE_LIST
+#undef X
 };
