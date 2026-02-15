@@ -1,4 +1,5 @@
 add_library(interpreter
+    ast.cpp
     error.cpp
     evaluator.cpp
     lexer.cpp

@@ -11,6 +11,8 @@ void Evaluator::throwErrorIfNotNumber(SourceLocation sourceLocation)
     }
 }
 
+Evaluator::Evaluator(Environment& environment) : environment(environment) {}
+
 void Evaluator::visit(NumberLiteralExpression& expression)
 {
     this->result = expression.value;

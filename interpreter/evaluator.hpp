@@ -11,7 +11,9 @@ private:
     void throwErrorIfNotNumber(SourceLocation sourceLocation);
 public:
     Environment& environment;
-    Value result;
+    Value result = Value();
+
+    Evaluator(Environment& environment);
 
     void visit(NumberLiteralExpression& expression) override;
 

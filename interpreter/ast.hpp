@@ -5,7 +5,8 @@
 #include "ast_node_list.hpp"
 #include "source_location.hpp"
 #include "value.hpp"
-#include "visitor.hpp"
+
+class Visitor;
 
 class AST
 {
@@ -31,10 +32,7 @@ class Concrete : public Base \
 { \
 public: \
     ExtraFields \
-    void accept(Visitor& visitor) override \
-    { \
-        visitor.visit(static_cast<Concrete&>(*this)); \
-    } \
+    void accept(Visitor& visitor) override; \
 };
 AST_CONCRETE_NODE_LIST
 #undef X

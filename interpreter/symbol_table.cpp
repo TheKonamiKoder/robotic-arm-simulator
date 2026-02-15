@@ -2,17 +2,19 @@
 
 #include "error.hpp"
 
-bool SymbolTable::contains(const std::string& name) const
-{
-    return this->symbolTableMap.find(name) != this->symbolTableMap.end();
-}
-
 void SymbolTable::throwErrorIfUndefined(const std::string& name) const
 {
     if (!this->contains(name))
     {
         throw UndefinedIdentifierError(name);
     }
+}
+
+SymbolTable::SymbolTable(std::unordered_map<std::string, Value> symbolTableMap) : symbolTableMap(symbolTableMap) {}
+
+bool SymbolTable::contains(const std::string& name) const
+{
+    return this->symbolTableMap.find(name) != this->symbolTableMap.end();
 }
 
 void SymbolTable::define(const std::string& name, const Value& value)

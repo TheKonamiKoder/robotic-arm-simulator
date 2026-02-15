@@ -1,5 +1,6 @@
 #include "parser.hpp"
 
+#include <memory>
 #include <unordered_map>
 
 #include "ast.hpp"
@@ -120,4 +121,124 @@ std::vector<Token> convertInfixToPostfix(std::vector<Token>& tokens)
     }
 
     return output;
+}
+
+std::unique_ptr<Expression> generateExpressionFromPostfixTokens(std::vector<Token>& tokens)
+{
+    static const std::unordered_map<TokenType, int> arityMap =
+    {
+#define X(OperatorName, AssociativityType, Precedence, Arity) {TokenType::OperatorName, Arity},
+        OPERATOR_TOKEN_LIST
+#undef X
+    };
+
+    auto throwIfTokensEmpty = [](const std::vector<Token>& tokens, const SourceLocation& sourceLocation)
+    {
+        if (tokens.empty())
+        {
+            throw MalformedExpressionError(sourceLocation);
+        }
+    };
+
+    // If the code is empty, return an empty expression
+    if (tokens.empty())
+    {
+        return nullptr;
+    }
+
+    // Pop the last token from the vectors
+    Token token = tokens.back();
+    tokens.pop_back();
+
+    if (!isOperator(token.type))
+    {
+        switch (token.type)
+        {
+        case TokenType::Identifier:     // Variables
+        {
+            auto expression = std::make_unique<VariableExpression>();
+            expression->name = token.literal.asString();
+            expression->sourceLocation = token.sourceLocation;
+            return expression;
+        }
+        case TokenType::Number:         // Number literals
+        {
+            auto expression = std::make_unique<NumberLiteralExpression>();
+            expression->value = token.literal.asNumber();
+            expression->sourceLocation = token.sourceLocation;
+            return expression;
+        }
+        // Will add other literals later
+        default:
+            throw MalformedExpressionError(token.sourceLocation);
+        }
+    }
+    else
+    {
+        throwIfTokensEmpty(tokens, token.sourceLocation);
+        
+        switch (arityMap.at(token.type))
+        {
+        case 1:     // Handle unary operators
+        {
+            std::unique_ptr<UnaryExpression> expression;
+            
+            std::unique_ptr<Expression> operand = generateExpressionFromPostfixTokens(tokens);
+
+            switch (token.type)
+            {
+            case TokenType::UnaryPlus:
+                expression = std::make_unique<UnaryPlusExpression>();
+                break;
+            case TokenType::UnaryMinus:
+                expression = std::make_unique<UnaryMinusExpression>();
+                break;
+            default:
+                throw MalformedExpressionError(token.sourceLocation);       // This part should not be reached
+                break;
+            }
+
+            expression->sourceLocation = token.sourceLocation;
+            expression->operand = std::move(operand);
+
+            return expression;
+        }
+        case 2:         // Handle binary operators
+        {
+            std::unique_ptr<BinaryExpression> expression;
+
+            std::unique_ptr<Expression> right = generateExpressionFromPostfixTokens(tokens);
+            throwIfTokensEmpty(tokens, token.sourceLocation);
+            std::unique_ptr<Expression> left = generateExpressionFromPostfixTokens(tokens);
+            
+            switch (token.type)
+            {
+            case TokenType::Plus:
+                expression = std::make_unique<AdditionExpression>();
+                break;
+            case TokenType::Minus:
+                expression = std::make_unique<SubtractionExpression>();
+                break;
+            case TokenType::Multiply:
+                expression = std::make_unique<MultiplicationExpression>();
+                break;
+            case TokenType::Divide:
+                expression = std::make_unique<DivisionExpression>();
+                break;
+            default:    // This shouldn't ever be reached, so there is a serious problem if it is
+                throw MalformedExpressionError(token.sourceLocation);
+                break;
+            }
+
+            expression->sourceLocation = token.sourceLocation;
+            expression->right = std::move(right);
+            expression->left = std::move(left);
+
+            return expression;
+        }
+        default:        // Since (at the moment) only binary and unary operators are used, code shouldn't reach here
+            throw MalformedExpressionError(token.sourceLocation);  
+            break;
+        }
+    }
 }

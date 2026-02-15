@@ -13,6 +13,9 @@ private:
     // This function will throw a runtime error if the name doesn't exist
     void throwErrorIfUndefined(const std::string& name) const;
 public:
+    SymbolTable() = default;
+    SymbolTable(std::unordered_map<std::string, Value> symbolTableMap);
+
     // Will be used to define a new function (used for the declaration)
     void define(const std::string& name, const Value& value);
 
