@@ -5,8 +5,7 @@
 #include "ast_node_list.hpp"
 #include "source_location.hpp"
 #include "value.hpp"
-
-class Visitor;
+#include "visitor.hpp"
 
 class AST
 {

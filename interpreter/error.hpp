@@ -5,20 +5,32 @@
 
 #include "source_location.hpp"
 
-class RuntimeError : public std::exception
+class RPLError : public std::exception
 {
 protected:
     std::string message;
     SourceLocation sourceLocation;
 public:
-    RuntimeError(std::string message, SourceLocation sourceLocation = {});
+    RPLError(std::string message, SourceLocation sourceLocation = {});
     
     const char* what() const override;
 
     SourceLocation getSourceLocation() const;
 };
 
-class UndefinedIdentifierError : public RuntimeError
+class MalformedExpressionError : public RPLError
+{
+public:
+    MalformedExpressionError(SourceLocation sourceLocation = {});
+};
+
+class MismatchedBracketsError : public RPLError
+{
+public:
+    MismatchedBracketsError(SourceLocation sourceLocation = {});
+};
+
+class UndefinedIdentifierError : public RPLError
 {
 private:
     std::string identifier;
@@ -28,13 +40,13 @@ public:
     std::string getIdentifier() const;
 };
 
-class DivisionByZeroError : public RuntimeError
+class DivisionByZeroError : public RPLError
 {
 public:
     DivisionByZeroError(SourceLocation sourceLocation = {});
 };
 
-class TypeError : public RuntimeError
+class TypeError : public RPLError
 {
 private:
     std::string expected;

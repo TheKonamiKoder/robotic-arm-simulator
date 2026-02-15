@@ -1,20 +1,26 @@
 #include "error.hpp"
 
-RuntimeError::RuntimeError(std::string message, SourceLocation sourceLocation) 
+RPLError::RPLError(std::string message, SourceLocation sourceLocation) 
     : message(message + " at " + sourceLocation.toString()), sourceLocation(sourceLocation) {}
 
-SourceLocation RuntimeError::getSourceLocation() const
+SourceLocation RPLError::getSourceLocation() const
 {
     return this->sourceLocation;
 }
 
-const char* RuntimeError::what() const
+const char* RPLError::what() const
 {
     return message.c_str();
 }
 
+MalformedExpressionError::MalformedExpressionError(SourceLocation sourceLocation)
+    : RPLError("Malformed Expression", sourceLocation) {}
+
+MismatchedBracketsError::MismatchedBracketsError(SourceLocation sourceLocation)
+    : RPLError("Mismatched Brackets", sourceLocation) {}
+
 UndefinedIdentifierError::UndefinedIdentifierError(std::string identifier, SourceLocation sourceLocation)
-    : RuntimeError("Undefined Identifier: " + identifier, sourceLocation) {}
+    : RPLError("Undefined Identifier: " + identifier, sourceLocation) {}
 
 std::string UndefinedIdentifierError::getIdentifier() const
 {
@@ -22,10 +28,10 @@ std::string UndefinedIdentifierError::getIdentifier() const
 }
 
 DivisionByZeroError::DivisionByZeroError(SourceLocation sourceLocation) 
-    : RuntimeError("Division By Zero", sourceLocation) {}
+    : RPLError("Division By Zero", sourceLocation) {}
 
 TypeError::TypeError(std::string expected, std::string actual, SourceLocation sourceLocation)
-    : RuntimeError("Type Error: Expected " + expected + " but got " + actual, sourceLocation) {}
+    : RPLError("Type Error: Expected " + expected + " but got " + actual, sourceLocation) {}
 
 std::string TypeError::getExpected() const
 {

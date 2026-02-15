@@ -6,3 +6,7 @@ add_test(NAME Interpreter.Lexer.GenerateTokensFromLine COMMAND lexer_tests --Gen
 add_test(NAME Interpreter.Lexer.GenerateTokensFromFile COMMAND lexer_tests --GenerateTokensFromFile LABELS "Interpreter;Lexer")
 target_compile_definitions(lexer_tests PRIVATE TEST_DATA_DIR="${TEST_DATA_DIR}")
 target_link_libraries(lexer_tests PRIVATE interpreter test_utils)
+
+add_executable(parser_tests parser_tests.cpp)
+add_test(NAME Interpreter.Parser.ConvertInfixToPostfix COMMAND parser_tests --ConvertInfixToPostfix LABELS "Interpreter;Parser")
+target_link_libraries(parser_tests PRIVATE interpreter test_utils)

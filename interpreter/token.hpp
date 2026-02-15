@@ -7,15 +7,20 @@
 #include "source_location.hpp"
 #include "value.hpp"
 
+// Operators are defined with their name, their associativity, their precedence and their arity in that order
+#define OPERATOR_TOKEN_LIST \
+    X(Plus, Left, 10, 2) \
+    X(Minus, Left, 10, 2) \
+    X(Multiply, Left, 20, 2) \
+    X(Divide, Left, 20, 2) \
+    X(UnaryPlus, Right, 30, 1) \
+    X(UnaryMinus, Right, 30, 1)
+
 #define TOKEN_TYPE_LIST \
     X(Number) \
     X(String) \
     X(Boolean) \
     X(Identifier) \
-    X(Plus) \
-    X(Minus) \
-    X(Multiply) \
-    X(Divide) \
     X(Assign) \
     X(Equals) \
     X(NotEqual) \
@@ -46,9 +51,16 @@
 
 enum class TokenType
 {
+    // For operators, we can discard the last values
+#define X(OperatorName, ...) OperatorName,
+    OPERATOR_TOKEN_LIST
+#undef X
+
 #define X(TypeName) TypeName,
     TOKEN_TYPE_LIST
 #undef X
+
+
 };
 
 class Token
@@ -65,3 +77,6 @@ class Token
 
 // This is for pretty printing the tokens, which is useful in debugging
 std::ostream& operator<<(std::ostream& os, TokenType type);
+
+// Will return true if the type is one of the operators, or otherwise it will return false
+bool isOperator(TokenType type);
