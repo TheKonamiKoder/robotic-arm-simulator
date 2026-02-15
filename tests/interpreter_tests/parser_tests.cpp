@@ -38,7 +38,7 @@ int main(int argc, char* argv[])
 
     if (runAllTests || mode == "--ConvertInfixToPostfix")
     {
-        std::cout << "Testing that postfix is being correctly generated from infix";
+        std::cout << "Testing that postfix is being correctly generated from infix\n";
         
         result += test("Passing \"5 + 5\" to infix to postfix generator", checkInfixToPostfix("5 + 5", "5 5 +"));
         result += test("Passing \"5 + 5\" to infix to postfix generator", checkInfixToPostfix("5 + 5", "5 5 +"));
