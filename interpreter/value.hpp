@@ -1,5 +1,6 @@
 #pragma once
 
+#include <ostream>
 #include <string>
 
 // Type aliases defined so that the internal types representing Number, String and Boolean can be changed if necessary
@@ -30,6 +31,7 @@ public:
     Value() = default;
     Value(Number numberValue);
     Value(String stringValue);
+    Value(const char* stringValue);
     Value(Boolean booleanValue);
 
     Number asNumber() const;
@@ -41,5 +43,19 @@ public:
     // This will return the name of the value's type
     std::string getTypeName() const;
 
+    friend Value operator+(const Value& lhs, const Value& rhs);
+    friend Value operator-(const Value& lhs, const Value& rhs);
+    friend Value operator*(const Value& lhs, const Value& rhs);
+    friend Value operator/(const Value& lhs, const Value& rhs);
     friend bool operator==(const Value& lhs, const Value& rhs);
+    friend bool operator!=(const Value& lhs, const Value& rhs);
+    friend bool operator>(const Value& lhs, const Value& rhs);
+    friend bool operator>=(const Value& lhs, const Value& rhs);
+    friend bool operator<(const Value& lhs, const Value& rhs);
+    friend bool operator<=(const Value& lhs, const Value& rhs);
+    friend bool operator||(const Value& lhs, const Value& rhs);
+    friend bool operator&&(const Value& lhs, const Value& rhs);
+    bool operator!() const;
+
+    friend std::ostream& operator<<(std::ostream& os, const Value& value);
 };

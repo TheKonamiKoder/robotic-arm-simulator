@@ -9,12 +9,21 @@
 
 // Operators are defined with their name, their associativity, their precedence and their arity in that order
 #define OPERATOR_TOKEN_LIST \
-    X(Plus, Left, 10, 2) \
-    X(Minus, Left, 10, 2) \
-    X(Multiply, Left, 20, 2) \
-    X(Divide, Left, 20, 2) \
-    X(UnaryPlus, Right, 30, 1) \
-    X(UnaryMinus, Right, 30, 1)
+    X(Plus,                Left,  50, 2) \
+    X(Minus,               Left,  50, 2) \
+    X(Multiply,            Left,  60, 2) \
+    X(Divide,              Left,  60, 2) \
+    X(UnaryPlus,           Right, 70, 1) \
+    X(UnaryMinus,          Right, 70, 1) \
+    X(Not,                 Right, 70, 1) \
+    X(GreaterThan,         Left,  40, 2) \
+    X(GreaterThanOrEqual,  Left,  40, 2) \
+    X(LessThan,            Left,  40, 2) \
+    X(LessThanOrEqual,     Left,  40, 2) \
+    X(Equals,              Left,  30, 2) \
+    X(NotEqual,            Left,  30, 2) \
+    X(And,                 Left,  20, 2) \
+    X(Or,                  Left,  10, 2)
 
 #define TOKEN_TYPE_LIST \
     X(Number) \
@@ -22,15 +31,6 @@
     X(Boolean) \
     X(Identifier) \
     X(Assign) \
-    X(Equals) \
-    X(NotEqual) \
-    X(GreaterThan) \
-    X(GreaterThanOrEqual) \
-    X(LessThan) \
-    X(LessThanOrEqual) \
-    X(Or) \
-    X(And) \
-    X(Not) \
     X(LeftBracket) \
     X(RightBracket) \
     X(Var) \

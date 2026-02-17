@@ -53,7 +53,13 @@ std::vector<Token> convertInfixToPostfix(std::vector<Token>& tokens)
         }
 
         // Case 1: operand
-        if ((token.type == TokenType::Number) || (token.type == TokenType::Identifier)) 
+        if 
+        (
+            (token.type == TokenType::Identifier) ||
+            (token.type == TokenType::Number)     ||
+            (token.type == TokenType::String)     ||
+            (token.type == TokenType::Boolean) 
+        ) 
         {
             output.push_back(token);
         }
@@ -168,7 +174,20 @@ std::unique_ptr<Expression> generateExpressionFromPostfixTokens(std::vector<Toke
             expression->sourceLocation = token.sourceLocation;
             return expression;
         }
-        // Will add other literals later
+        case TokenType::String:
+        {
+            auto expression = std::make_unique<StringLiteralExpression>();
+            expression->value = token.literal.asString();
+            expression->sourceLocation = token.sourceLocation;
+            return expression;
+        }
+        case TokenType::Boolean:
+        {
+            auto expression = std::make_unique<BooleanLiteralExpression>();
+            expression->value = token.literal.asBoolean();
+            expression->sourceLocation = token.sourceLocation;
+            return expression;
+        }
         default:
             throw MalformedExpressionError(token.sourceLocation);
         }
@@ -193,6 +212,9 @@ std::unique_ptr<Expression> generateExpressionFromPostfixTokens(std::vector<Toke
             case TokenType::UnaryMinus:
                 expression = std::make_unique<UnaryMinusExpression>();
                 break;
+            case TokenType::Not:
+                expression = std::make_unique<NotExpression>();
+                break;
             default:
                 throw MalformedExpressionError(token.sourceLocation);       // This part should not be reached
                 break;
@@ -214,17 +236,29 @@ std::unique_ptr<Expression> generateExpressionFromPostfixTokens(std::vector<Toke
             switch (token.type)
             {
             case TokenType::Plus:
-                expression = std::make_unique<AdditionExpression>();
-                break;
+                expression = std::make_unique<AdditionExpression>(); break;
             case TokenType::Minus:
-                expression = std::make_unique<SubtractionExpression>();
-                break;
+                expression = std::make_unique<SubtractionExpression>(); break;
             case TokenType::Multiply:
-                expression = std::make_unique<MultiplicationExpression>();
-                break;
+                expression = std::make_unique<MultiplicationExpression>(); break;
             case TokenType::Divide:
-                expression = std::make_unique<DivisionExpression>();
-                break;
+                expression = std::make_unique<DivisionExpression>(); break;
+            case TokenType::GreaterThan:
+                expression = std::make_unique<GreaterThanExpression>(); break;
+            case TokenType::GreaterThanOrEqual:
+                expression = std::make_unique<GreaterThanOrEqualExpression>(); break;
+            case TokenType::LessThan:
+                expression = std::make_unique<LessThanExpression>(); break;
+            case TokenType::LessThanOrEqual:
+                expression = std::make_unique<LessThanOrEqualExpression>(); break;
+            case TokenType::Equals:
+                expression = std::make_unique<EqualsExpression>(); break;
+            case TokenType::NotEqual:
+                expression = std::make_unique<NotEqualExpression>(); break;
+            case TokenType::And:
+                expression = std::make_unique<AndExpression>(); break;
+            case TokenType::Or:
+                expression = std::make_unique<OrExpression>(); break;
             default:    // This shouldn't ever be reached, so there is a serious problem if it is
                 throw MalformedExpressionError(token.sourceLocation);
                 break;

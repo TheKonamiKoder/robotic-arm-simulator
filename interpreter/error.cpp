@@ -3,11 +3,6 @@
 RPLError::RPLError(std::string message, SourceLocation sourceLocation) 
     : message(message + " at " + sourceLocation.toString()), sourceLocation(sourceLocation) {}
 
-SourceLocation RPLError::getSourceLocation() const
-{
-    return this->sourceLocation;
-}
-
 const char* RPLError::what() const
 {
     return message.c_str();

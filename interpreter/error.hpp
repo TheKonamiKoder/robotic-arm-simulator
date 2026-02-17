@@ -7,15 +7,13 @@
 
 class RPLError : public std::exception
 {
-protected:
     std::string message;
-    SourceLocation sourceLocation;
 public:
+    SourceLocation sourceLocation;
+
     RPLError(std::string message, SourceLocation sourceLocation = {});
     
     const char* what() const override;
-
-    SourceLocation getSourceLocation() const;
 };
 
 class MalformedExpressionError : public RPLError
@@ -52,7 +50,7 @@ private:
     std::string expected;
     std::string actual;
 public:
-    TypeError(std::string expected, std::string actual, SourceLocation sourceLocation);
+    TypeError(std::string expected, std::string actual, SourceLocation sourceLocation = {});
 
     std::string getExpected() const;
     std::string getActual() const;
