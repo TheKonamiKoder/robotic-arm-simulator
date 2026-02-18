@@ -1,21 +1,18 @@
 #pragma once
 
-#include "environment.hpp"
+#include "visitor.hpp"
 
 #include <functional>
 
+#include "environment.hpp"
 #include "source_location.hpp"
 #include "value.hpp"
-#include "visitor.hpp"
 
 class Expression;
 
 class Evaluator : public Visitor
 {
 private:
-    // This is a helper function to return the result after visiting the expression node
-    Value getResult(Expression& expression);
-
     // This function will do the operation but also add context to the errors (if necessary)
     void doOperation(std::function<void()> operation, SourceLocation sourceLocation = {});
 public:
@@ -23,6 +20,9 @@ public:
     Value result = Value();
 
     Evaluator(Environment& environment);
+
+    // This is a helper function to return the result after visiting the expression node
+    Value getResult(Expression& expression);
 
     void visit(VariableExpression& expression) override;
 

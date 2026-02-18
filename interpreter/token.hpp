@@ -47,6 +47,7 @@
     X(Move) \
     X(To) \
     X(Then) \
+    X(Log) \
     X(Unknown)
 
 enum class TokenType
@@ -73,6 +74,8 @@ class Token
 
         Token() = default;
         Token(TokenType type, std::string lexeme, Value literal, SourceLocation sourceLocation = {});
+
+        std::string toString() const;
 };
 
 // This is for pretty printing the tokens, which is useful in debugging

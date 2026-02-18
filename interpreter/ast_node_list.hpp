@@ -7,7 +7,8 @@
 #define AST_ABSTRACT_NODE_LIST \
     X(Expression, AST, ) \
     X(BinaryExpression, Expression, std::unique_ptr<Expression> left; std::unique_ptr<Expression> right;) \
-    X(UnaryExpression, Expression, std::unique_ptr<Expression> operand;) 
+    X(UnaryExpression, Expression, std::unique_ptr<Expression> operand;) \
+    X(Statement, AST, ) \
 
 // This is the list of concrete nodes which can be visited
 #define AST_CONCRETE_NODE_LIST \
@@ -29,4 +30,13 @@
     X(LessThanOrEqualExpression, BinaryExpression, ) \
     X(OrExpression, BinaryExpression, ) \
     X(AndExpression, BinaryExpression, ) \
-    X(NotExpression, UnaryExpression, )
+    X(NotExpression, UnaryExpression, ) \
+    X(VariableDeclarationStatement, Statement, std::string name; std::unique_ptr<Expression> value;) \
+    X(AssignmentStatement, Statement, std::string name; std::unique_ptr<Expression> value;) \
+    X(RotateStatement, Statement, std::unique_ptr<Expression> motorName; std::unique_ptr<Expression> angularDisplacement;) \
+    X(TranslateStatement, Statement, std::unique_ptr<Expression> linearActuatorName; std::unique_ptr<Expression> displacement;) \
+    X(RaiseStatement, Statement, std::string event;) \
+    X(LogStatement, Statement, std::unique_ptr<Expression> message;) \
+    X(BlockStatement, Statement, std::vector<std::unique_ptr<Statement>> statements;) \
+    X(IfStatement, Statement, std::unique_ptr<Expression> condition; std::unique_ptr<BlockStatement> ifTrueStatements; std::unique_ptr<BlockStatement> ifFalseStatements;) \
+    X(ThenStatement, Statement, std::unique_ptr<Statement> first; std::unique_ptr<Statement> next;)

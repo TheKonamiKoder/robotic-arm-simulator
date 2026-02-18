@@ -1,6 +1,7 @@
 #pragma once
 
 #include <memory>
+#include <vector>
 
 #include "ast_node_list.hpp"
 #include "source_location.hpp"

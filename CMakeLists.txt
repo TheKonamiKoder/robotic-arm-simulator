@@ -38,6 +38,7 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/build)
 
 add_subdirectory(robot)
 add_subdirectory(interpreter)
+add_subdirectory(simulation_engine)
 add_subdirectory(robot_graphics)
 add_subdirectory(robot_editor)
 add_subdirectory(tests)

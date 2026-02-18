@@ -27,6 +27,23 @@ Value::Value(const char* stringValue) : type(Type::String), stringValue(stringVa
 
 Value::Value(Boolean booleanValue) : type(Type::Boolean), booleanValue(booleanValue) {}
 
+std::string Value::toString() const
+{
+    switch (this->type)
+    {
+    case Value::Type::Number:
+        return std::to_string(this->numberValue);
+    case Value::Type::String:
+        return this->stringValue;
+    case Value::Type::Boolean:
+        return (this->booleanValue) ? "TRUE" : "FALSE";
+    case Value::Type::None:
+        return "None";
+    default:
+        return "Unknown";
+    }
+}
+
 Number Value::asNumber() const 
 {
     if (this->type != Type::Number)

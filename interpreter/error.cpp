@@ -1,11 +1,11 @@
 #include "error.hpp"
 
 RPLError::RPLError(std::string message, SourceLocation sourceLocation) 
-    : message(message + " at " + sourceLocation.toString()), sourceLocation(sourceLocation) {}
+    : message(message), sourceLocation(sourceLocation) {}
 
 const char* RPLError::what() const
 {
-    return message.c_str();
+    return (message + " at " + sourceLocation.toString()).c_str();
 }
 
 MalformedExpressionError::MalformedExpressionError(SourceLocation sourceLocation)
@@ -37,3 +37,9 @@ std::string TypeError::getActual() const
 {
     return this->actual;
 }
+
+SyntaxError::SyntaxError(std::string expected, std::string actual, SourceLocation sourceLocation)
+    : RPLError("Syntax Error: expected " + expected + " but got " + actual, sourceLocation) {}
+
+SyntaxError::SyntaxError(std::string unexpected, SourceLocation sourceLocation)
+    : RPLError("Unexpected Token: " + unexpected, sourceLocation) {}

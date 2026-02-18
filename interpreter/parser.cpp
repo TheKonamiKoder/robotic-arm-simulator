@@ -4,6 +4,7 @@
 #include <unordered_map>
 
 #include "ast.hpp"
+#include "behaviour.hpp"
 #include "error.hpp"
 #include "token.hpp"
 
@@ -275,4 +276,538 @@ std::unique_ptr<Expression> generateExpressionFromPostfixTokens(std::vector<Toke
             break;
         }
     }
+}
+
+std::unique_ptr<Expression> parseNextExpression(std::vector<Token>& tokens)
+{
+    std::vector<Token> infix;
+    
+    Token previous;
+    previous.type = TokenType::Unknown;
+    Token current;
+
+    bool partOfExpression = true;
+    while (partOfExpression && !tokens.empty())
+    {
+        current = tokens.front();
+
+        if 
+        (
+            (current.type == TokenType::Identifier) || 
+            (current.type == TokenType::Number)     || 
+            (current.type == TokenType::String)     ||
+            (current.type == TokenType::Boolean)    ||
+            (current.type == TokenType::LeftBracket)
+        )
+        {
+            // Operands can only come after an operator, a left bracket or at the beginning
+            // The same also goes for left brackets as well
+            if 
+            (
+                isOperator(previous.type) || 
+                (previous.type == TokenType::LeftBracket) || 
+                (previous.type == TokenType::Unknown)
+            )
+            {
+                infix.push_back(current);
+                tokens.erase(tokens.begin());                   
+            }
+            else
+            {
+                partOfExpression = false;
+            }
+        }
+        else if (isOperator(current.type))
+        {
+            // Operators can come after anything
+            infix.push_back(current);
+            tokens.erase(tokens.begin());
+        }
+        else if (current.type == TokenType::RightBracket)
+        {
+            // Right brackets can only come after an operand or after another right bracket
+            if 
+            (
+                (previous.type == TokenType::Identifier)  ||
+                (previous.type == TokenType::Number)      ||
+                (previous.type == TokenType::String)      ||
+                (previous.type == TokenType::Boolean)     ||
+                (previous.type == TokenType::RightBracket)
+            )
+            {
+                infix.push_back(current);
+                tokens.erase(tokens.begin());
+            }
+            else
+            {
+                partOfExpression = false;
+            }
+        }
+        else
+        {
+            partOfExpression = false;
+        }
+        
+        previous = current;
+    }
+    
+    std::vector<Token> postfix = convertInfixToPostfix(infix);
+    return generateExpressionFromPostfixTokens(postfix);
+}
+
+std::vector<Behaviour> generateBehavioursFromTokens(std::vector<Token>& tokens)
+{
+    std::vector<Behaviour> behaviours;
+
+    std::string event = "Global";
+    std::vector<Token> behaviourTokens;
+
+    bool nextIsEventName = false;
+
+    for (int i = 0; i < tokens.size(); i++)
+    {
+        Token token = tokens[i];
+
+        if (token.type == TokenType::Endon)
+        {
+            behaviours.push_back(Behaviour(event, behaviourTokens));
+        }
+        else if (token.type == TokenType::On)
+        {
+            nextIsEventName = true;
+        }
+        else if (nextIsEventName)
+        {
+            if (token.type != TokenType::String)
+            {
+                throw SyntaxError("String", token.toString(), token.sourceLocation);
+            }
+            
+            event = token.literal.asString();
+            nextIsEventName = false;
+        }
+        else
+        {
+            behaviourTokens.push_back(token);
+        }
+    }
+    
+    return behaviours;
+}
+
+std::unique_ptr<BlockStatement> parseStatements(std::vector<Token>& tokens)
+{
+    auto blockStatement = std::make_unique<BlockStatement>();
+
+    while (!tokens.empty())
+    {
+        blockStatement->statements.push_back(std::move(parseNextStatement(tokens)));
+    }
+    
+    return blockStatement;
+}
+
+std::unique_ptr<Statement> parseNextStatement(std::vector<Token>& tokens)
+{
+    std::unique_ptr<Statement> left = parseNextSingleStatement(tokens);
+
+    // Chain THEN statements
+    while (!tokens.empty() && tokens.front().type == TokenType::Then)
+    {
+        Token thenToken = tokens.front();
+        tokens.erase(tokens.begin());
+
+        if (tokens.empty())
+        {
+            throw SyntaxError("Statement", "", thenToken.sourceLocation);
+        }
+
+        std::unique_ptr<Statement> right = parseNextSingleStatement(tokens);
+
+        auto chain = std::make_unique<ThenStatement>();
+        chain->sourceLocation = thenToken.sourceLocation;
+        chain->first = std::move(left);
+        chain->next = std::move(right);
+
+        left = std::move(chain);
+    }
+
+    return left;
+}
+
+std::unique_ptr<Statement> parseNextSingleStatement(std::vector<Token>& tokens)
+{
+    Token token = tokens.front();
+
+    switch (token.type)
+    {
+    case TokenType::Var:
+        return parseNextVariableDeclarationStatement(tokens);
+    case TokenType::Identifier:
+        return parseNextAssignmentStatement(tokens);
+    case TokenType::Rotate:
+        return parseNextRotateStatement(tokens);
+    case TokenType::Translate:
+        return parseNextTranslateStatement(tokens);
+    case TokenType::Raise:
+        return parseNextRaiseStatement(tokens);
+    case TokenType::Log:
+        return parseNextLogStatement(tokens);
+    case TokenType::If:
+        return parseNextIfStatement(tokens);
+    default:
+        throw SyntaxError(token.lexeme, token.sourceLocation);
+        break;
+    }
+}
+
+std::unique_ptr<VariableDeclarationStatement> parseNextVariableDeclarationStatement(std::vector<Token>& tokens)
+{
+    auto statement = std::make_unique<VariableDeclarationStatement>();
+
+    if (tokens.empty())
+    {
+        throw SyntaxError("VAR", "");
+    }
+    
+    Token var = tokens.front();
+    tokens.erase(tokens.begin());
+
+    if (var.type != TokenType::Var)
+    {
+        throw SyntaxError("VAR", var.lexeme, var.sourceLocation);
+    }
+
+    statement->sourceLocation = var.sourceLocation;
+
+    if (tokens.empty())
+    {
+        throw SyntaxError("Identifier", "", var.sourceLocation);
+    }
+    
+    Token name = tokens.front();
+    tokens.erase(tokens.begin());
+
+    if (name.type != TokenType::Identifier)
+    {
+        throw SyntaxError("Identifier", name.toString());
+    }
+    
+    statement->name = name.literal.asString();
+
+    if (tokens.empty())
+    {
+        throw SyntaxError("=", "", name.sourceLocation);
+    }
+
+    Token equals = tokens.front();
+    tokens.erase(tokens.begin());
+
+    if (equals.type != TokenType::Assign)
+    {
+        throw SyntaxError("=", equals.lexeme, equals.sourceLocation);
+    }
+
+    if (tokens.empty())
+    {
+        throw SyntaxError("Expression", "", equals.sourceLocation);
+    }
+    
+    std::unique_ptr<Expression> expression = parseNextExpression(tokens);
+
+    statement->value = std::move(expression);
+
+    return statement;
+}
+
+std::unique_ptr<AssignmentStatement> parseNextAssignmentStatement(std::vector<Token>& tokens)
+{
+    auto statement = std::make_unique<AssignmentStatement>();
+
+    if (tokens.empty())
+    {
+        throw SyntaxError("Identifier", "");
+    }
+    
+    Token name = tokens.front();
+    tokens.erase(tokens.begin());
+
+    if (name.type != TokenType::Identifier)
+    {
+        throw SyntaxError("Identifier", name.toString());
+    }
+
+    statement->sourceLocation = name.sourceLocation;
+    statement->name = name.literal.asString();
+
+    if (tokens.empty())
+    {
+        throw SyntaxError("=", "", name.sourceLocation);
+    }
+
+    Token equals = tokens.front();
+    tokens.erase(tokens.begin());
+
+    if (equals.type != TokenType::Assign)
+    {
+        throw SyntaxError("=", equals.lexeme, equals.sourceLocation);
+    }
+
+    if (tokens.empty())
+    {
+        throw SyntaxError("Expression", "", equals.sourceLocation);
+    }
+    
+    std::unique_ptr<Expression> expression = parseNextExpression(tokens);
+
+    statement->value = std::move(expression);
+
+    return statement;    
+}
+
+std::unique_ptr<RotateStatement> parseNextRotateStatement(std::vector<Token>& tokens)
+{
+    auto statement = std::make_unique<RotateStatement>();
+
+    if (tokens.empty())
+    {
+        throw SyntaxError("ROTATE", "");
+    }
+
+    Token rotate = tokens.front();
+    tokens.erase(tokens.begin());
+    
+    if (rotate.type != TokenType::Rotate)
+    {
+        throw SyntaxError("ROTATE", rotate.lexeme, rotate.sourceLocation);
+    }
+
+    statement->sourceLocation = rotate.sourceLocation;
+
+    if (tokens.empty())
+    {
+        throw SyntaxError("String Expression", "");
+    }
+
+    std::unique_ptr<Expression> motorName = parseNextExpression(tokens);
+
+    statement->motorName = std::move(motorName);
+
+    if (tokens.empty())
+    {
+        throw SyntaxError("BY", "", motorName->sourceLocation);
+    }
+
+    Token by = tokens.front();
+    tokens.erase(tokens.begin());
+
+    if (by.type != TokenType::By)
+    {
+        throw SyntaxError("BY", by.lexeme, by.sourceLocation);
+    }
+
+    if (tokens.empty())
+    {
+        throw SyntaxError("Numeric Expression", "", by.sourceLocation);
+    }
+
+    std::unique_ptr<Expression> angularDisplacement = parseNextExpression(tokens);
+
+    statement->angularDisplacement = std::move(angularDisplacement);
+
+    return statement;
+}
+
+std::unique_ptr<TranslateStatement> parseNextTranslateStatement(std::vector<Token>& tokens)
+{
+    auto statement = std::make_unique<TranslateStatement>();
+
+    if (tokens.empty())
+    {
+        throw SyntaxError("TRANSLATE", "");
+    }
+
+    Token translate = tokens.front();
+    tokens.erase(tokens.begin());
+
+    if (translate.type != TokenType::Translate)
+    {
+        throw SyntaxError("TRANSLATE", translate.lexeme, translate.sourceLocation);
+    }
+
+    statement->sourceLocation = translate.sourceLocation;
+
+    if (tokens.empty())
+    {
+        throw SyntaxError("String Expression", "", translate.sourceLocation);
+    }
+
+    std::unique_ptr<Expression> linearActuatorName = parseNextExpression(tokens);
+    statement->linearActuatorName = std::move(linearActuatorName);
+
+    if (tokens.empty())
+    {
+        throw SyntaxError("BY", "", linearActuatorName->sourceLocation);
+    }
+
+    Token by = tokens.front();
+    tokens.erase(tokens.begin());
+
+    if (by.type != TokenType::By)
+    {
+        throw SyntaxError("BY", by.lexeme, by.sourceLocation);
+    }
+
+    if (tokens.empty())
+    {
+        throw SyntaxError("Numeric Expression", "", by.sourceLocation);
+    }
+
+    std::unique_ptr<Expression> displacement = parseNextExpression(tokens);
+    statement->displacement = std::move(displacement);
+
+    return statement;
+}
+
+std::unique_ptr<RaiseStatement> parseNextRaiseStatement(std::vector<Token>& tokens)
+{
+    auto statement = std::make_unique<RaiseStatement>();
+
+    if (tokens.empty())
+    {
+        throw SyntaxError("RAISE", "");
+    }
+
+    Token raise = tokens.front();
+    tokens.erase(tokens.begin());
+
+    if (raise.type != TokenType::Raise)
+    {
+        throw SyntaxError("RAISE", raise.lexeme, raise.sourceLocation);
+    }
+
+    statement->sourceLocation = raise.sourceLocation;
+
+    if (tokens.empty())
+    {
+        throw SyntaxError("String", "", raise.sourceLocation);
+    }
+
+    Token event = tokens.front();
+    tokens.erase(tokens.begin());
+
+    if (event.type != TokenType::String)
+    {
+        throw SyntaxError("String", event.lexeme, event.sourceLocation);
+    }
+
+    statement->event = event.literal.asString();
+
+    return statement;
+}
+
+std::unique_ptr<LogStatement> parseNextLogStatement(std::vector<Token>& tokens)
+{
+    auto statement = std::make_unique<LogStatement>();
+
+    if (tokens.empty())
+    {
+        throw SyntaxError("LOG", "");
+    }
+
+    Token log = tokens.front();
+    tokens.erase(tokens.begin());
+
+    if (log.type != TokenType::Log)
+    {
+        throw SyntaxError("LOG", log.lexeme, log.sourceLocation);
+    }
+
+    statement->sourceLocation = log.sourceLocation;
+
+    if (tokens.empty())
+    {
+        throw SyntaxError("Expression", "", log.sourceLocation);
+    }
+
+    std::unique_ptr<Expression> message = parseNextExpression(tokens);
+
+    statement->message = std::move(message);
+
+    return statement;
+}
+
+std::unique_ptr<IfStatement> parseNextIfStatement(std::vector<Token>& tokens)
+{
+    auto statement = std::make_unique<IfStatement>();
+
+    if (tokens.empty())
+    {
+        throw SyntaxError("IF", "");
+    }
+
+    Token ifToken = tokens.front();
+    tokens.erase(tokens.begin());
+
+    if (ifToken.type != TokenType::If)
+    {
+        throw SyntaxError("IF", ifToken.lexeme, ifToken.sourceLocation);
+    }
+
+    statement->sourceLocation = ifToken.sourceLocation;
+
+    if (tokens.empty())
+    {
+        throw SyntaxError("Condition", "", ifToken.sourceLocation);
+    }
+
+    statement->condition = parseNextExpression(tokens);
+
+    // --- Parse THEN block (until ELSE) ---
+    statement->ifTrueStatements = std::make_unique<BlockStatement>();
+
+    while (!tokens.empty() && ((tokens.front().type != TokenType::Else) || (tokens.front().type != TokenType::Endif)))
+    {
+        statement->ifTrueStatements->statements.push_back
+        (
+            std::move(parseNextStatement(tokens))
+        );
+    }
+
+    if (tokens.empty())
+    {
+        throw SyntaxError("ELSE", "", statement->condition->sourceLocation);
+    }
+
+    Token elseToken = tokens.front();
+    tokens.erase(tokens.begin());
+
+    if (elseToken.type != TokenType::Else)
+    {
+        throw SyntaxError("ELSE", elseToken.lexeme, elseToken.sourceLocation);
+    }
+
+    statement->ifFalseStatements = std::make_unique<BlockStatement>();
+
+    while (!tokens.empty() && tokens.front().type != TokenType::Endif)
+    {
+        statement->ifFalseStatements->statements.push_back(
+            std::move(parseNextStatement(tokens))
+        );
+    }
+
+    if (tokens.empty())
+    {
+        throw SyntaxError("ENDIF", "", elseToken.sourceLocation);
+    }
+
+    Token endIfToken = tokens.front();
+    tokens.erase(tokens.begin());
+
+    if (endIfToken.type != TokenType::Endif)
+    {
+        throw SyntaxError("ENDIF", endIfToken.lexeme, endIfToken.sourceLocation);
+    }
+
+    return statement;
 }

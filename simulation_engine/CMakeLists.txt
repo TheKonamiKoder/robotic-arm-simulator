@@ -1,0 +1,3 @@
+add_library(simulation_engine simulation_engine.cpp)
+target_include_directories(simulation_engine PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+target_link_libraries(simulation_engine PUBLIC robot)

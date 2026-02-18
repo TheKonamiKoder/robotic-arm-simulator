@@ -9,6 +9,7 @@ target_link_libraries(lexer_tests PRIVATE interpreter test_utils)
 
 add_executable(parser_tests parser_tests.cpp)
 add_test(NAME Interpreter.Parser.ConvertInfixToPostfix COMMAND parser_tests --ConvertInfixToPostfix LABELS "Interpreter;Parser")
+add_test(NAME Interpreter.Parser.ParseNextExpression COMMAND parser_tests --ParseNextExpression LABELS "Interpreter;Parser")
 target_link_libraries(parser_tests PRIVATE interpreter test_utils)
 
 add_executable(evaluator_tests evaluator_tests.cpp)

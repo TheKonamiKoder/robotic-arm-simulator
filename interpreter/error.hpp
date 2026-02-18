@@ -55,3 +55,14 @@ public:
     std::string getExpected() const;
     std::string getActual() const;
 };
+
+class SyntaxError: public RPLError
+{
+private:
+    std::string expected;
+    std::string actual;
+    std::string unexpected;
+public:
+    SyntaxError(std::string expected, std::string actual, SourceLocation sourceLocation = {});
+    SyntaxError(std::string unexpected, SourceLocation = {});
+};

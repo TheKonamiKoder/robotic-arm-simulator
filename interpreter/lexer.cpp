@@ -54,7 +54,8 @@ Token generateTokenFromWord(const std::string& word, SourceLocation sourceLocati
         {"BY",          TokenType::By},
         {"MOVE",        TokenType::Move},
         {"TO",          TokenType::To},
-        {"THEN",        TokenType::Then}
+        {"THEN",        TokenType::Then},
+        {"LOG",         TokenType::Log}
     };
 
     // Generates a string token

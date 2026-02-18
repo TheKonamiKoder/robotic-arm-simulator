@@ -13,7 +13,7 @@ public:
     virtual ~Visitor() = default;
 
 // Only concrete classes need to be visited
-#define X(Concrete, Base, ExtraFields) virtual void visit(Concrete&) = 0;
+#define X(Concrete, Base, ExtraFields) virtual void visit(Concrete&) {};
     AST_CONCRETE_NODE_LIST
 #undef X
 };

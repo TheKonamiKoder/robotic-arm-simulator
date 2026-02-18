@@ -34,6 +34,8 @@ public:
     Value(const char* stringValue);
     Value(Boolean booleanValue);
 
+    std::string toString() const;
+
     Number asNumber() const;
     String asString() const;
     Boolean asBoolean() const;
