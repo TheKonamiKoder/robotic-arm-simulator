@@ -2,6 +2,7 @@ add_library(interpreter
     ast.cpp
     error.cpp
     evaluator.cpp
+    interpreter.cpp
     lexer.cpp
     parser.cpp
     source_location.cpp

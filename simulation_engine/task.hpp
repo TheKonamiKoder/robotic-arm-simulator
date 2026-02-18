@@ -1,5 +1,6 @@
 #pragma once
 
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -7,6 +8,9 @@ class Task
 {
 public:
     bool isFinished = false;
+
+    virtual ~Task() = default;
+    virtual void reset() {this->isFinished = false;}
 };
 
 class LogTask : public Task
@@ -36,9 +40,12 @@ class RotateTask : public Task
 public:
     std::string motorName;
     double angularDisplacement;
+    double actualAngularDisplacement = 0;
 
     RotateTask(std::string motorName, double angularDisplacement) 
         : motorName(motorName), angularDisplacement(angularDisplacement) {}
+
+    void reset() override {this->isFinished = false; this->actualAngularDisplacement = 0;}
 };
 
 class TranslateTask : public Task
@@ -46,16 +53,22 @@ class TranslateTask : public Task
 public:
     std::string linearActuatorName;
     double displacement;
+    double actualDisplacement = 0;
 
-    TranslateTask(std::string linearActuatorName, double linearActuator) 
+    TranslateTask(std::string linearActuatorName, double displacement) 
         : linearActuatorName(linearActuatorName), displacement(displacement) {}
+
+    void reset() override {this->isFinished = false; this->actualDisplacement = 0;}
 };
 
 class SequenceTask : public Task
 {
 public:
-    Task first;
-    Task second;
+    std::unique_ptr<Task> first;
+    std::unique_ptr<Task> second;
 
-    SequenceTask(Task first, Task second) : first(first), second(second) {}
+    SequenceTask(std::unique_ptr<Task> first, std::unique_ptr<Task> second) 
+        : first(std::move(first)), second(std::move(second)) {}
+    
+    void reset() override {this->isFinished = false; this->first->reset(); this->second->reset();}
 };

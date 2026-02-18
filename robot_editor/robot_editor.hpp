@@ -1,6 +1,12 @@
 #pragma once
 
+#include <vector>
+
 #include "robot.hpp"
+
+#include "behaviour.hpp"
+
+#include "simulation_engine.hpp"
 
 class RobotComponent;
 class Coordinate;
@@ -16,10 +22,14 @@ struct UIState
     bool showRobotComponentInformation = false;
     bool showRobotEditorSettings = false;
     bool showSaveRobotFilePopup = false;
+    bool showEventsListBox = false;
 
     bool highlightSelectedComponent = true;
     bool showEndEffectors = true;
     bool showCentreOfMass = true;
+
+    bool editingRobot = true;
+    bool runningSimulation = false;
 
     bool saved = true;
 
@@ -29,8 +39,12 @@ struct UIState
     double width = 50;
     double density = 0.001;
 
+    std::vector<Behaviour> behaviours;
+
     Robot robot;
     RobotComponent* selectedComponent = nullptr;
+
+    SimulationEngine simulationEngine;
 
     static UIState& instance()
     {
@@ -46,8 +60,14 @@ void drawMenu();
 // application
 void showOpenRobotFilePopup();
 
+// This will show a popup thta will ask the user to enter a file name of the robot that the user wants to load into the
+// application
+void showOpenScriptFilePopup();
+
 // This will show a popup that will ask the user to enter a file name where they would like to save the current robot
 void showSaveRobotFilePopup();
+
+void showEventsListBox();
 
 // This will show the settings for the robot editor, such as whether to show the end effector or to highlight the
 // selected component

@@ -85,25 +85,36 @@ int main()
             {
                 if (!io.WantCaptureKeyboard)
                 {
-                    if (keyPressed->scancode == sf::Keyboard::Scancode::S)
+                    if (keyPressed->scancode == sf::Keyboard::Scancode::S && UIState::instance().editingRobot)
                     {
                         addComponent('S');
                         UIState::instance().showRobotComponentInformation = true;
                     }
                     
-                    if (keyPressed->scancode == sf::Keyboard::Scancode::L)
+                    if (keyPressed->scancode == sf::Keyboard::Scancode::L && UIState::instance().editingRobot)
                     {
                         addComponent('L');
                         UIState::instance().showRobotComponentInformation = true;
                     }
 
-                    if (keyPressed->scancode == sf::Keyboard::Scancode::M)
+                    if (keyPressed->scancode == sf::Keyboard::Scancode::M && UIState::instance().editingRobot)
                     {
                         addComponent('M');
                         UIState::instance().showRobotComponentInformation = true;
                     }
 
-                    if (keyPressed->scancode == sf::Keyboard::Scancode::Delete)
+                    if (keyPressed->scancode == sf::Keyboard::Scancode::P)
+                    {
+                        UIState::instance().editingRobot = !UIState::instance().editingRobot;
+                    }
+
+                    if (keyPressed->scancode == sf::Keyboard::Scancode::Space)
+                    {
+                        UIState::instance().runningSimulation = !UIState::instance().runningSimulation;
+                    }
+                    
+
+                    if (keyPressed->scancode == sf::Keyboard::Scancode::Delete && UIState::instance().editingRobot)
                     {
                         if (UIState::instance().selectedComponent != nullptr)
                         {
@@ -111,7 +122,7 @@ int main()
                         }
                     }
 
-                    if (keyPressed->scancode == sf::Keyboard::Scancode::Left)
+                    if (keyPressed->scancode == sf::Keyboard::Scancode::Left && UIState::instance().editingRobot)
                     {
                         if (UIState::instance().robot.getBase() != UIState::instance().selectedComponent)
                         {
@@ -119,7 +130,7 @@ int main()
                         }
                     }
 
-                    if (keyPressed->scancode == sf::Keyboard::Scancode::Right)
+                    if (keyPressed->scancode == sf::Keyboard::Scancode::Right && UIState::instance().editingRobot)
                     {
                         if (UIState::instance().robot.getEnd() != UIState::instance().selectedComponent)
                         {
@@ -143,6 +154,7 @@ int main()
 
         drawMenu();
         showOpenRobotFilePopup();
+        showOpenScriptFilePopup();
         showSaveRobotFilePopup();
 
         if (UIState::instance().showRobotEditorSettings)
@@ -183,6 +195,12 @@ int main()
         if (UIState::instance().showCentreOfMass)
         {
             drawCentreOfMass(UIState::instance().robot, window);
+        }
+
+        if (UIState::instance().runningSimulation)
+        {
+            showEventsListBox();
+            UIState::instance().simulationEngine.update();
         }
         
         ImGui::SFML::Render(window);

@@ -1,5 +1,7 @@
 #include "interpreter.hpp"
 
+#include <iostream>
+
 #include "ast.hpp"
 #include "error.hpp"
 #include "environment.hpp"
@@ -16,17 +18,19 @@ void Interpreter::execute(std::function<void()> stuffToDo, SourceLocation source
         {
             error.sourceLocation = sourceLocation;
         }
-        this->simulationEngine.addTask(LogErrorTask(std::string(error.what())));
+        this->task = std::make_unique<LogErrorTask>(LogErrorTask(std::string(error.what())));
+        std::cout << error.what();
     }
 }
 
-Interpreter::Interpreter(Environment& environment) : environment(environment), evaluator(Evaluator(evaluator)), simulationEngine(SimulationEngine()) {}
+Interpreter::Interpreter(Environment& environment) : environment(environment), evaluator(Evaluator(evaluator)) {}
 
 void Interpreter::visit(VariableDeclarationStatement& statement) 
 {
     this->execute
     (
-        [&](){this->environment.symbolTable.define(statement.name, this->evaluator.getResult(*statement.value));},
+        [&](){
+            this->environment.symbolTable.define(statement.name, this->evaluator.getResult(*statement.value));},
         statement.sourceLocation
     );
 }
@@ -46,11 +50,11 @@ void Interpreter::visit(RotateStatement& statement)
     (
         [&]()
         {
-            this->task = RotateTask
+            this->task = std::make_unique<RotateTask>(RotateTask
             (
                 this->evaluator.getResult(*statement.motorName).asString(), 
                 this->evaluator.getResult(*statement.angularDisplacement).asNumber()
-            );
+            ));
         },
         statement.sourceLocation
     );
@@ -62,11 +66,11 @@ void Interpreter::visit(TranslateStatement& statement)
     (
         [&]()
         {
-            this->task = TranslateTask
+            this->task = std::make_unique<TranslateTask>(TranslateTask
             (
                 this->evaluator.getResult(*statement.linearActuatorName).asString(),
                 this->evaluator.getResult(*statement.displacement).asNumber()
-            );
+            ));
         },
         statement.sourceLocation
     );
@@ -74,24 +78,30 @@ void Interpreter::visit(TranslateStatement& statement)
 
 void Interpreter::visit(RaiseStatement& statement) 
 {
+    this->execute([&](){this->task = std::make_unique<RaiseTask>(RaiseTask(statement.event));}, statement.sourceLocation);
 }
 
 void Interpreter::visit(LogStatement& statement) 
 {
     this->execute
     (
-        [&](){this->task = LogTask(this->evaluator.getResult(*statement.message).toString());},
+        [&](){this->task = std::make_unique<LogTask>(LogTask(this->evaluator.getResult(*statement.message).toString()));},
         statement.sourceLocation
     );
 }
 
 void Interpreter::visit(BlockStatement& statement) 
 {
+    this->execute(
+        [&](){
     for (int i = 0; i < statement.statements.size(); i++)
     {
         statement.statements[i]->accept(*this);
-        this->tasks.push_back(this->task);
-    }
+        if (this->task != nullptr)
+        {
+            this->tasks.push_back(std::move(this->task));
+        }
+    }}, statement.sourceLocation);
 }
 
 void Interpreter::visit(IfStatement& statement) 
@@ -120,12 +130,12 @@ void Interpreter::visit(ThenStatement& statement)
         [&]()
         {
             statement.first->accept(*this);
-            Task first = this->task;
-
+            std::unique_ptr<Task> first = std::move(this->task);
+            
             statement.next->accept(*this);
-            Task next = this->task;
+            std::unique_ptr<Task> next = std::move(this->task);
 
-            this->task = SequenceTask(first, next);
+            this->task = std::make_unique<SequenceTask>(std::move(first), std::move(next));
         },
         statement.sourceLocation
     );

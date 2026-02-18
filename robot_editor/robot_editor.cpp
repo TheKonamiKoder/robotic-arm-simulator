@@ -1,4 +1,9 @@
+#define _USE_MATH_DEFINES
+
 #include "robot_editor.hpp"
+
+#include <iostream>
+#include <memory>
 
 #include <SFML/Graphics.hpp>
 #include <imgui-SFML.h>
@@ -9,9 +14,17 @@
 #include "motor.hpp"
 #include "robot.hpp"
 
+#include "token.hpp"
+#include "lexer.hpp"
+#include "parser.hpp"
+#include "ast.hpp"
+#include "interpreter.hpp"
+#include "environment.hpp"
+
 void drawMenu()
 {
     bool openRobotFilePopup = false;
+    bool openScriptFilePopup = false;
     bool saveRobotFilePopup = false;
 
     if (ImGui::BeginMainMenuBar())
@@ -40,9 +53,19 @@ void drawMenu()
                 }
             }
             
-            if (ImGui::MenuItem("Open"))
+            if (ImGui::BeginMenu("Open"))
             {
-                openRobotFilePopup = true;
+                if (ImGui::MenuItem("Robot File"))
+                {
+                    openRobotFilePopup = true;
+                }
+
+                if (ImGui::MenuItem("Script File"))
+                {
+                    openScriptFilePopup = true;
+                }
+                
+                ImGui::EndMenu();
             }
 
             if (ImGui::MenuItem("Save"))
@@ -83,6 +106,11 @@ void drawMenu()
         ImGui::OpenPopup("Open Robot File");
     }
 
+    if (openScriptFilePopup)
+    {
+        ImGui::OpenPopup("Open Script File");
+    }
+    
     if (saveRobotFilePopup)
     {
         ImGui::OpenPopup("Save Robot File");
@@ -110,6 +138,65 @@ void showOpenRobotFilePopup()
             if (UIState::instance().robot.getBase() != nullptr)
             {
                 UIState::instance().selectedComponent = UIState::instance().robot.getBase();
+            }
+
+            UIState::instance().simulationEngine.robot = &UIState::instance().robot;
+
+            ImGui::CloseCurrentPopup();
+        }
+
+        ImGui::SameLine();
+
+        if (ImGui::Button("Cancel", ImVec2(120, 0)))
+        {
+            ImGui::CloseCurrentPopup();
+        }
+
+        ImGui::EndPopup();
+    }
+}
+
+void showOpenScriptFilePopup()
+{
+    static char filenameBuffer[256] = "";
+
+    if (ImGui::BeginPopupModal("Open Script File", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
+    {
+        ImGui::Text("Enter file name:");
+        ImGui::SameLine();
+        ImGui::InputText("##FileNameInput", filenameBuffer, sizeof(filenameBuffer));
+
+        ImGui::Spacing();
+
+        if (ImGui::Button("OK", ImVec2(120, 0)))
+        {
+            std::string filename = filenameBuffer;
+
+            std::vector<Token> tokens = generateTokensFromFile(filename);
+            UIState::instance().behaviours = generateBehavioursFromTokens(tokens);
+            
+            for (int i = 0; i < UIState::instance().behaviours.size(); i++)
+            {
+                //std::cout << UIState::instance().behaviours[i].event << '\n';
+                std::unique_ptr<BlockStatement> statements = parseStatements(UIState::instance().behaviours[i].tokens);
+                //std::cout << statements->statements.size() << '\n';
+                Environment environment{SymbolTable()};
+                Interpreter interpreter(environment);
+                try
+                {
+                    statements->accept(interpreter);
+                    auto& tasks = UIState::instance().simulationEngine.programMap[UIState::instance().behaviours[i].event];
+                    for (int i = 0; i < interpreter.tasks.size(); i++)
+                    {
+                        tasks.push_back(std::move(interpreter.tasks[i]));
+                    }
+                    //std::cout << interpreter.tasks.size() << '\n';
+                }
+                catch(const std::exception& e)
+                {
+                    std::cerr << e.what() << '\n';
+                }
+                
             }
 
             ImGui::CloseCurrentPopup();
@@ -216,6 +303,33 @@ void showRobotInformation()
 
                 ImGui::EndListBox();
             }   
+        }
+    ImGui::End();
+}
+
+void showEventsListBox()
+{
+    ImGui::Begin("Events", &UIState::instance().runningSimulation);
+        ImGui::Text("Event List:");
+
+        float avail = ImGui::GetContentRegionAvail().x;
+        float listWidth = avail * 0.75;
+        ImGui::SetCursorPosX((avail - listWidth) * 0.5);
+
+        float listHeight = ImGui::GetContentRegionAvail().y;
+
+        if (ImGui::BeginListBox("##EventsListBox", ImVec2(listWidth, listHeight)))
+        {
+            for (const auto& [event, _] : UIState::instance().simulationEngine.programMap)
+            {
+                std::string selectableId = event;
+                if (ImGui::Selectable(selectableId.c_str()))
+                {
+                    UIState::instance().simulationEngine.raiseEvent(event);
+                }
+            }
+
+            ImGui::EndListBox();
         }
     ImGui::End();
 }

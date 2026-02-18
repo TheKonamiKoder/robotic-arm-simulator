@@ -1,5 +1,6 @@
 #include "parser.hpp"
 
+#include <iostream>
 #include <memory>
 #include <unordered_map>
 
@@ -371,6 +372,7 @@ std::vector<Behaviour> generateBehavioursFromTokens(std::vector<Token>& tokens)
         if (token.type == TokenType::Endon)
         {
             behaviours.push_back(Behaviour(event, behaviourTokens));
+            behaviourTokens.clear();
         }
         else if (token.type == TokenType::On)
         {
@@ -423,7 +425,7 @@ std::unique_ptr<Statement> parseNextStatement(std::vector<Token>& tokens)
         }
 
         std::unique_ptr<Statement> right = parseNextSingleStatement(tokens);
-
+        
         auto chain = std::make_unique<ThenStatement>();
         chain->sourceLocation = thenToken.sourceLocation;
         chain->first = std::move(left);
@@ -763,7 +765,6 @@ std::unique_ptr<IfStatement> parseNextIfStatement(std::vector<Token>& tokens)
 
     statement->condition = parseNextExpression(tokens);
 
-    // --- Parse THEN block (until ELSE) ---
     statement->ifTrueStatements = std::make_unique<BlockStatement>();
 
     while (!tokens.empty() && ((tokens.front().type != TokenType::Else) || (tokens.front().type != TokenType::Endif)))
@@ -791,7 +792,8 @@ std::unique_ptr<IfStatement> parseNextIfStatement(std::vector<Token>& tokens)
 
     while (!tokens.empty() && tokens.front().type != TokenType::Endif)
     {
-        statement->ifFalseStatements->statements.push_back(
+        statement->ifFalseStatements->statements.push_back
+        (
             std::move(parseNextStatement(tokens))
         );
     }

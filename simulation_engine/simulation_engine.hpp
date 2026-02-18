@@ -10,21 +10,22 @@
 class SimulationEngine
 {
 private:
-    std::vector<Task> currentTasks;
+    std::vector<Task*> currentTasks;
+
+    void doLogTask(LogTask& task);
+    void doLogErrorTask(LogErrorTask& task);
+    void doRaiseTask(RaiseTask& task);
+    void doRotateTask(RotateTask& task);
+    void doTranslateTask(TranslateTask& task);
 public:
     Robot* robot;
     double angularDisplacementSpeed = 0.1;
-    double displacementSpeed = 0.1;
+    double displacementSpeed = 1;
 
-    std::unordered_map<std::string, std::vector<Task>> programMap;
+    std::unordered_map<std::string, std::vector<std::unique_ptr<Task>>> programMap;
 
     void update();
-    
-    void simulateLogTask(LogTask task);
-    void simulateLogErrorTask(LogErrorTask task);
-    void simulateRaiseTask(RaiseTask task);
-    void simulateRotateTask(RotateTask task);
-    void simulateTranslateTask(TranslateTask task);
 
-    void addTask(Task task);
+    void doTask(Task& task);
+    void raiseEvent(const std::string& event);
 };

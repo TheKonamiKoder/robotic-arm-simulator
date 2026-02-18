@@ -18,11 +18,10 @@ private:
     void execute(std::function<void()> stuffToDo, SourceLocation sourceLocation = {});
 public:
     Environment& environment;
-    Evaluator& evaluator;
-    SimulationEngine& simulationEngine;
+    Evaluator evaluator;
 
-    Task task;
-    std::vector<Task> tasks;
+    std::unique_ptr<Task> task;
+    std::vector<std::unique_ptr<Task>> tasks;
 
     Interpreter(Environment& environment);
 
