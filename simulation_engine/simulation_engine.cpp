@@ -51,7 +51,7 @@ void SimulationEngine::doTask(Task& task)
     }
     else if (auto translateTask = dynamic_cast<TranslateTask*>(&task))
     {
-        std::cout << "Translate task:\n";
+        //std::cout << "Translate task:\n";
         this->doTranslateTask(*translateTask);
     }
     else if (auto sequenceTask = dynamic_cast<SequenceTask*>(&task))
@@ -166,11 +166,11 @@ void SimulationEngine::doTranslateTask(TranslateTask& task)
         (task.displacement >= 0 && task.actualDisplacement >= task.displacement) ||
         (task.displacement < 0  && task.actualDisplacement <= task.displacement);
 
-    std::cout << task.actualDisplacement << ' ' << task.displacement << '\n';
+    //std::cout << task.actualDisplacement << ' ' << task.displacement << '\n';
 
     if (targetReached)
     {
-        std::cout << "Finished target!";
+        //std::cout << "Finished target!";
         task.isFinished = true;
         return;
     }

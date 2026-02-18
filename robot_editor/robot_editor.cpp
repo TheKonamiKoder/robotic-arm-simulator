@@ -98,6 +98,48 @@ void drawMenu()
             
             ImGui::EndMenu();
         }
+
+        if (ImGui::BeginMenu("Simulation"))
+        {
+            if (UIState::instance().editingRobot)
+            {
+                if (ImGui::MenuItem("Start Simulation"))
+                {
+                    UIState::instance().editingRobot = false;
+                    UIState::instance().showEventsListBox = true;
+                    UIState::instance().runningSimulation = true;
+                }
+            }
+            else
+            {
+                if (ImGui::MenuItem("End Simulation"))
+                {
+                    UIState::instance().editingRobot = true;
+                    UIState::instance().showEventsListBox = false;
+                    UIState::instance().runningSimulation = false;
+                    UIState::instance().showSimulationSettings = false;   
+                }
+            }
+
+            if (!UIState::instance().showEventsListBox && !UIState::instance().editingRobot)
+            {
+                if (ImGui::MenuItem("Show Events Box"))
+                {
+                    UIState::instance().showEventsListBox = true;
+                }
+            }
+
+            if (!UIState::instance().showSimulationSettings && !UIState::instance().editingRobot)
+            {
+                if (ImGui::MenuItem("Simulation Settings"))
+                {
+                    UIState::instance().showSimulationSettings = true;
+                }
+            }
+
+            ImGui::EndMenu();
+        }
+        
         ImGui::EndMainMenuBar();
     }
 
@@ -257,6 +299,31 @@ void showRobotEditorSettings()
     ImGui::End();
 }
 
+void showSimulationSettings()
+{
+    ImGui::Begin("Simulation Settings", &UIState::instance().showSimulationSettings);
+        ImGui::Text("Angular Velocity");
+        ImGui::SameLine();
+        ImGui::InputDouble
+        (
+            "##SimulationSettingsAngularVelocityDoubleInput", 
+            &UIState::instance().simulationEngine.angularDisplacementSpeed, 
+            0.25, 
+            0.5
+        );
+
+        ImGui::Text("Linear Velocity");
+        ImGui::SameLine();
+        ImGui::InputDouble
+        (
+            "##SimulationSettingsLinearVelocityDoubleInput",
+            &UIState::instance().simulationEngine.displacementSpeed,
+            1,
+            5
+        );
+    ImGui::End();
+}
+
 void showRobotInformation()
 {
     static char robotNameBuffer[128];
@@ -309,7 +376,7 @@ void showRobotInformation()
 
 void showEventsListBox()
 {
-    ImGui::Begin("Events", &UIState::instance().runningSimulation);
+    ImGui::Begin("Events", &UIState::instance().showEventsListBox);
         ImGui::Text("Event List:");
 
         float avail = ImGui::GetContentRegionAvail().x;

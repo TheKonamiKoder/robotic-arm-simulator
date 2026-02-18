@@ -103,16 +103,13 @@ int main()
                         UIState::instance().showRobotComponentInformation = true;
                     }
 
-                    if (keyPressed->scancode == sf::Keyboard::Scancode::P)
-                    {
-                        UIState::instance().editingRobot = !UIState::instance().editingRobot;
-                    }
-
                     if (keyPressed->scancode == sf::Keyboard::Scancode::Space)
                     {
-                        UIState::instance().runningSimulation = !UIState::instance().runningSimulation;
+                        if (!UIState::instance().editingRobot)
+                        {
+                            UIState::instance().runningSimulation = !UIState::instance().runningSimulation;
+                        }
                     }
-                    
 
                     if (keyPressed->scancode == sf::Keyboard::Scancode::Delete && UIState::instance().editingRobot)
                     {
@@ -199,8 +196,17 @@ int main()
 
         if (UIState::instance().runningSimulation)
         {
-            showEventsListBox();
             UIState::instance().simulationEngine.update();
+        }
+
+        if (UIState::instance().showEventsListBox)
+        {
+            showEventsListBox();
+        }
+
+        if (UIState::instance().showSimulationSettings)
+        {
+            showSimulationSettings();
         }
         
         ImGui::SFML::Render(window);

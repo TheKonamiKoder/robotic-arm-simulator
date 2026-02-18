@@ -23,6 +23,7 @@ struct UIState
     bool showRobotEditorSettings = false;
     bool showSaveRobotFilePopup = false;
     bool showEventsListBox = false;
+    bool showSimulationSettings = false;
 
     bool highlightSelectedComponent = true;
     bool showEndEffectors = true;
@@ -72,6 +73,8 @@ void showEventsListBox();
 // This will show the settings for the robot editor, such as whether to show the end effector or to highlight the
 // selected component
 void showRobotEditorSettings();
+
+void showSimulationSettings();
 
 // This tool will show information about the robot, including its name, mass etc. and which robot components form part
 // of it
