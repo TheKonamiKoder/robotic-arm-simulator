@@ -5,10 +5,13 @@
 #include "test_utils.hpp"
 
 #include "ast.hpp"
-
+#include "environment.hpp"
+#include "evaluator.hpp"
 #include "lexer.hpp"
 #include "parser.hpp"
 #include "token.hpp"
+#include "symbol_table.hpp"
+#include "value.hpp"
 
 bool checkInfixToPostfix(const std::string& infix, const std::string& postfix)
 {
@@ -34,6 +37,18 @@ bool checkParseNextExpression(const std::string& code, int tokensRemoved)
     int initialSize = tokens.size();
     std::unique_ptr<Expression> expression = parseNextExpression(tokens);
     return (initialSize - tokens.size()) == tokensRemoved;
+}
+
+bool checkParseVariableDeclarationExpression(const std::string& code, const std::string& variableName, const Value& expectedValue)
+{
+    std::vector<Token> tokens = generateTokensFromLine(code);
+    std::unique_ptr<VariableDeclarationStatement> statement = parseNextVariableDeclarationStatement(tokens);
+
+    Environment environment{SymbolTable()};
+    Evaluator evaluator(environment);
+    statement->value->accept(evaluator);
+
+    return (statement->name == variableName) && (evaluator.result == expectedValue);
 }
 
 int main(int argc, char* argv[])
@@ -75,6 +90,15 @@ int main(int argc, char* argv[])
         result += test("Simple Brackets", checkParseNextExpression("(x)", 3));
         result += test("Double Brackets", checkParseNextExpression("((3))", 5));
         result += test("Operator After Bracket", checkParseNextExpression("( + 6 ) THEN", 4));
+    }
+
+    if (runAllTests || mode == "--ParseVariableDeclarationStatement")
+    {
+        std::cout << "Testing that the variable declaration statement is being parsed correctly\n";
+
+        result += test("Number", checkParseVariableDeclarationExpression("VAR x = 53", "x", 53.0));
+        result += test("String", checkParseVariableDeclarationExpression("VAR x = \"Hello World\"", "x", "Hello World"));
+        result += test("Boolean", checkParseVariableDeclarationExpression("VAR x = TRUE", "x", true));
     }
     
     return result;
