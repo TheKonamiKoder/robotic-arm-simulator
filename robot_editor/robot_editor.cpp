@@ -219,20 +219,19 @@ void showOpenScriptFilePopup()
             
             for (int i = 0; i < UIState::instance().behaviours.size(); i++)
             {
-                //std::cout << UIState::instance().behaviours[i].event << '\n';
                 std::unique_ptr<BlockStatement> statements = parseStatements(UIState::instance().behaviours[i].tokens);
-                //std::cout << statements->statements.size() << '\n';
                 Environment environment{SymbolTable()};
                 Interpreter interpreter(environment);
                 try
                 {
+                    // Find what tasks each program is doing and send those tasks to the simulation engine so that the
+                    // simulation engine can execute them and affect the robot
                     statements->accept(interpreter);
                     auto& tasks = UIState::instance().simulationEngine.programMap[UIState::instance().behaviours[i].event];
                     for (int i = 0; i < interpreter.tasks.size(); i++)
                     {
                         tasks.push_back(std::move(interpreter.tasks[i]));
                     }
-                    //std::cout << interpreter.tasks.size() << '\n';
                 }
                 catch(const std::exception& e)
                 {
